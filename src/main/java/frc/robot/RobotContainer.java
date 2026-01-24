@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -177,8 +178,12 @@ public class RobotContainer
     driverXbox.back().onTrue(Commands.none());
     driverXbox.a().onTrue( new MoveArmCommand(armSubsystem, ArmConstants.HomePosition ) );
     driverXbox.b().onTrue(Commands.none());
-    driverXbox.x().onTrue( new MoveArmCommand(armSubsystem, ArmConstants.CoralMovingPosition ) );
-    driverXbox.y().onTrue(Commands.none());
+    driverXbox.x().onTrue(Commands.none());//.onTrue( new MoveArmCommand(armSubsystem, ArmConstants.CoralMovingPosition ) );
+    driverXbox.y().onTrue(
+      new RunCommand(() -> elevatorSubsystem.setZeroPoint(), elevatorSubsystem)
+      .andThen(new WaitCommand(0.25))
+      .andThen(new MoveArmCommand(armSubsystem, ArmConstants.HomePosition))
+    );
     
     driverXbox.rightBumper().onTrue(Commands.none());
     driverXbox.leftBumper().onTrue(Commands.none());

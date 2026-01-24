@@ -23,7 +23,7 @@ public final class Constants
 {
   public static class SwerveConstants
   {
-    public static final double MaxSpeed  = Units.feetToMeters( 13 ); //14.5);
+    public static final double MaxSpeed  = Units.feetToMeters( 10 ); //14.5);
     public static final double WheelLockTime = 10; // seconds
     public static final double RobotMass = (134) * 0.453592; // 32lbs * kg per pound
     public static final Matter Chassis    = new Matter(new Translation3d(0, 0, Units.inchesToMeters(8)), RobotMass);
@@ -41,7 +41,7 @@ public final class Constants
     public static final double L4ScaleTranslation = 0.4;
     public static final double SlowModeScaleTranlastion = 0.3;
 
-    public static final double DefaultScaleRotation = 0.8;
+    public static final double DefaultScaleRotation = 0.7;
     public static final double L1ScaleRotation = 0.6;
     public static final double L2ScaleRotation = 0.5;
     public static final double L3ScaleRotation = 0.4;
@@ -205,12 +205,12 @@ public final class Constants
   {
     public static double HomePosition = 0.0;
     public static double Lvl1Position = 50.0;
-    public static double Lvl2Position = 235.0;//255.0;
-    public static double Lvl3Position = 550.0;//605.0;
-    public static double Lvl4Position = 1120.0;//1150.0;
+    public static double Lvl2Position = 255;//235.0;//255.0;
+    public static double Lvl3Position = 570;//550.0;//605.0;
+    public static double Lvl4Position = 1140; //1120.0;//1150.0;
     public static double MaxHeightPosition = 1150.0;
     
-    public static double LowerAlgaePosition = 330.0;
+    public static double LowerAlgaePosition = 340.0;
     public static double UpperAlgaePosition = 660.0;
     public static double NetAlgaePosition = 1080.0;
 
