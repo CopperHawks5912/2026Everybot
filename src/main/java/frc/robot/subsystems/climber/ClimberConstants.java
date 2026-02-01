@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.climber;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This
@@ -12,7 +12,8 @@ package frc.robot.subsystems.intake;
  * It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
-public final class IntakeConstants {
+public final class ClimberConstants {
   // motor speeds from -1.0 to 1.0 (-100% to 100% -> x 12 for voltage control)
-  public static double IntakeFuelVoltage = 0.20 * 12; 
+  public static double UpVoltage   =  0.50 * 12; 
+  public static double DownVoltage = -0.50 * 12; 
 }

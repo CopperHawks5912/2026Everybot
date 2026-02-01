@@ -13,5 +13,6 @@ package frc.robot.subsystems.shooter;
  * constants are needed, to reduce verbosity.
  */
 public final class ShooterConstants {
-
+  // motor speeds from -1.0 to 1.0 (-100% to 100% -> x 12 for voltage control)
+  public static double ShootVoltage = 0.20 * 12;
 }
