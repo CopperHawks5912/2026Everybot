@@ -22,7 +22,7 @@ import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.feedback.FeedbackSubsystem;
 import frc.robot.subsystems.intake.IntakeSubsystem;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
-import frc.robot.Constants.SwerveConstants;
+import frc.robot.subsystems.drive.SwerveConstants;
 import swervelib.SwerveInputStream;
 
 import java.io.File;
