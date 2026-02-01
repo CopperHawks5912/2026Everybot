@@ -33,7 +33,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
-import frc.robot.Constants.*;
 import frc.robot.subsystems.drive.Vision.Cameras;
 import frc.robot.util.Utils;
 
@@ -70,7 +69,7 @@ public class SwerveSubsystem extends SubsystemBase {
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean     visionEnabled = false;
+  private final boolean visionEnabled = false;
 
   /**
    * PhotonVision class to keep an accurate odometry.
@@ -87,10 +86,11 @@ public class SwerveSubsystem extends SubsystemBase {
       ? new Pose2d(new Translation2d(Meter.of(1), Meter.of(4)), Rotation2d.fromDegrees(0))
       : new Pose2d(new Translation2d(Meter.of(16), Meter.of(4)), Rotation2d.fromDegrees(180));
     
-    // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary objects being created.
+    // configure the telemetry before creating the SwerveDrive to avoid unnecessary objects being created.
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
-    try {
-      // configure swerve drive from JSON files
+
+    // configure swerve drive from JSON files
+    try {      
       swerveDrive = new SwerveParser(directory).createSwerveDrive(SwerveConstants.MaxSpeed, startingPose);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -252,9 +252,12 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   public Command driveToPose(Pose2d pose) {
     // Create the constraints to use while pathfinding
-        PathConstraints constraints = new PathConstraints(
-            swerveDrive.getMaximumChassisVelocity(), 4.0,
-            swerveDrive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
+    PathConstraints constraints = new PathConstraints(
+      swerveDrive.getMaximumChassisVelocity(), 
+      4.0,
+      swerveDrive.getMaximumChassisAngularVelocity(), 
+      Units.degreesToRadians(720)
+    );
 
     // Since AutoBuilder is configured, we can use it to build pathfinding commands
     return AutoBuilder.pathfindToPose(
