@@ -16,8 +16,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import frc.robot.Constants.PWMConstants;
-import frc.robot.Constants.FeedbackConstants;
-import frc.robot.Constants.FeedbackConstants.DisplayMode;
+import frc.robot.subsystems.feedback.FeedbackConstants.DisplayMode;
 import frc.robot.util.Utils;
 
 public class FeedbackSubsystem extends SubsystemBase {
