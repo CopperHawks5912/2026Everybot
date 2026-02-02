@@ -25,7 +25,21 @@ public final class Constants {
   /**
    * CAN bus IO contants
    */
-  public static final class CANConstants {}
+  public static final class CANConstants {
+    // Fuel subsystem motors
+    public static final int kLeftIntakeLauncherMotorID = 0;
+    public static final int kRightIntakeLauncherMotorID = 1;
+    public static final int kFeederMotorID = 2;
+
+    // Climber subsystem motor
+    public static final int kClimberMotorID = 3;
+
+    // Differential drive subsystem motors
+    public static final int kLeftDifferentialLeaderMotorID = 4;
+    public static final int kLeftDifferentialFollowerMotorID = 5;
+    public static final int kRightDifferentialLeaderMotorID = 6;
+    public static final int kRightDifferentialFollowerMotorID = 7;
+  }
   
   /**
    * Digital IO constants
@@ -36,10 +50,10 @@ public final class Constants {
    * PWM IO constants
    */
   public static class PWMConstants {
-    public static final int LEDStringID = 0;
-    public static final int IntakeID    = 1;
-    public static final int ShooterID   = 2;
-    public static final int ClimberID   = 3;
+    public static final int kLEDStringID = 0;
+    public static final int kIntakeID    = 1;
+    public static final int kShooterID   = 2;
+    public static final int kClimberID   = 3;
   }
 
   /**

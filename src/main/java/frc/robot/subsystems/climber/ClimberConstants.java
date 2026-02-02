@@ -13,7 +13,7 @@ package frc.robot.subsystems.climber;
  * constants are needed, to reduce verbosity.
  */
 public final class ClimberConstants {
-  // motor speeds from -1.0 to 1.0 (-100% to 100% -> x 12 for voltage control)
-  public static double UpVoltage   =  0.50 * 12; 
-  public static double DownVoltage = -0.50 * 12; 
+  // motor speeds from -1.0 to 1.0 (-100% to 100%)
+  public static double UpPercent   =  0.80; 
+  public static double DownPercent = -0.80; 
 }

@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.fuel;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This
@@ -12,7 +12,15 @@ package frc.robot.subsystems.intake;
  * It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
-public final class IntakeConstants {
-  // motor speeds from -1.0 to 1.0 (-100% to 100% -> x 12 for voltage control)
-  public static double IntakeFuelVoltage = 0.20 * 12; 
+public final class FuelConstants {
+  // All values likely need to be tuned based on your robot
+  public static final double kFeederIntakingPercent         = -0.80; 
+  public static final double kFeederLaunchingPercent        =  0.60;
+  public static final double kFeederSpinUpPreLaunchPercent  = -0.50;
+
+  public static final double kIntakeIntakingPercent         =  0.60;
+  public static final double kLauncherLaunchingPercent      =  0.85;
+  public static final double kIntakeEjectPercent            = -0.80;
+
+  public static final double kSpinUpSeconds                 =  0.75;
 }

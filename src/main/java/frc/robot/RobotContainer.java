@@ -20,8 +20,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.feedback.FeedbackSubsystem;
-import frc.robot.subsystems.intake.IntakeSubsystem;
-import frc.robot.subsystems.shooter.ShooterSubsystem;
+import frc.robot.subsystems.fuel.FuelConstants;
+import frc.robot.subsystems.fuel.FuelSubsystem;
+import frc.robot.subsystems.vision.VisionSubsystem;
+import frc.robot.subsystems.drive.DifferentialSubsystem;
 import frc.robot.subsystems.drive.SwerveConstants;
 import swervelib.SwerveInputStream;
 
@@ -37,38 +39,48 @@ public class RobotContainer {
   final CommandXboxController driverXbox = new CommandXboxController(0);
    
   // The robot's subsystems are defined here...
-  private final SwerveSubsystem driveSubsystem = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/5912_2026"));
   private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
   private final FeedbackSubsystem feedbackSubsystem = new FeedbackSubsystem(driverXbox);
-  private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
-  private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  private final FuelSubsystem fuelSubsystem = new FuelSubsystem();
+  private final VisionSubsystem visionSubsystem = new VisionSubsystem();
+  private final DifferentialSubsystem driveSubsystem = new DifferentialSubsystem(visionSubsystem);
+  // private final SwerveSubsystem driveSubsystem = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/5912_2026"));
 
   // Auto choosers
   private SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
   private SendableChooser<Command> delayCommandChooser = new SendableChooser<>();
 
+  // ------------------------------------------------------------------------
+  // SWERVE DRIVE CODE
+  // ------------------------------------------------------------------------
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
-  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
-      driveSubsystem.getSwerveDrive(),
-      () -> driverXbox.getLeftY() * -1,
-      () -> driverXbox.getLeftX() * -1
-    )
-    .withControllerRotationAxis(() -> driverXbox.getRightX() * -1)
-    .deadband(SwerveConstants.Deadband)
-    .scaleTranslation(SwerveConstants.DefaultScaleTranslation)
-    .allianceRelativeControl(true);  
+  // SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
+  //     driveSubsystem.getSwerveDrive(),
+  //     () -> driverXbox.getLeftY() * -1,
+  //     () -> driverXbox.getLeftX() * -1
+  //   )
+  //   .withControllerRotationAxis(() -> driverXbox.getRightX() * -1)
+  //   .deadband(SwerveConstants.Deadband)
+  //   .scaleTranslation(SwerveConstants.DefaultScaleTranslation)
+  //   .allianceRelativeControl(true);  
 
-  Command driveFieldOrientedAnglularVelocity = driveSubsystem.driveFieldOriented(driveAngularVelocity);
+  // Command driveFieldOrientedAnglularVelocity = driveSubsystem.driveFieldOriented(driveAngularVelocity);
 
   /** 
    * The container for the robot. 
    * Contains subsystems, IO devices, and commands. 
    */
   public RobotContainer() {
-    // set our default driving method (field relative)
-    driveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+    // set our default driving method (field relative - swerve drive)
+    // driveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+
+    // set our default driving method (arcade - differential drive)
+    driveSubsystem.setDefaultCommand(driveSubsystem.driveArcadeCommand(
+      () -> -1 * driverXbox.getLeftY(),
+      () -> -1 * driverXbox.getRightX()
+    ));
 
     // configure our named commands
     configureNamedCommands();
@@ -140,26 +152,31 @@ public class RobotContainer {
    */
   private void configureBindings() {   
     // reset gyro and odometry
-    driverXbox.start().onTrue((Commands.runOnce(driveSubsystem::resetGyro)));
+    driverXbox.start().onTrue((Commands.runOnce(driveSubsystem::resetOdometryCommand)));
 
-    // climb up while holding Y
-    driverXbox.y().whileTrue(climberSubsystem.upCommand());
+    // climb down while holding left trigger
+    driverXbox.leftTrigger().whileTrue(climberSubsystem.downCommand());
 
-    // climb down while holding B
-    driverXbox.b().whileTrue(climberSubsystem.downCommand());
+    // climb up while holding right trigger
+    driverXbox.rightTrigger().whileTrue(climberSubsystem.upCommand());
 
-    // shoot fuel into hub based on given vision distance while holding X
-    driverXbox.x().whileTrue(shooterSubsystem.shootCommand(() -> -1));
+    // intake fuel from the ground while holding left bumper
+    driverXbox.leftBumper().whileTrue(fuelSubsystem.intakeCommand());
 
-    // intake fuel from the ground while holding A
-    driverXbox.a().whileTrue(intakeSubsystem.intakeFuelCommand());
+    // launch fuel while holding right bumper
+    driverXbox.rightBumper().whileTrue(
+      fuelSubsystem.spinUpCommand().withTimeout(FuelConstants.kSpinUpSeconds)
+      .andThen(fuelSubsystem.launchCommand(() -> -1))      
+    );
+
+    // eject fuel through the intake while holding the A button
+    driverXbox.a().whileTrue(fuelSubsystem.ejectCommand());
 
     // not used
     driverXbox.back().onTrue(Commands.none());
-    driverXbox.rightBumper().onTrue(Commands.none());
-    driverXbox.leftBumper().onTrue(Commands.none());
-    driverXbox.rightTrigger().onTrue(Commands.none());
-    driverXbox.leftTrigger().onTrue(Commands.none());
+    driverXbox.y().onTrue(Commands.none());
+    driverXbox.b().onTrue(Commands.none());
+    driverXbox.x().onTrue(Commands.none());
   }
 
   /**
@@ -179,7 +196,7 @@ public class RobotContainer {
    * @param brake True to brake or false to coast
    */
   public void setMotorBrake(boolean brake) {
-    driveSubsystem.setMotorBrake(brake);
+    CommandScheduler.getInstance().schedule(driveSubsystem.setMotorBrakeCommand(brake));
   }
 
   /**

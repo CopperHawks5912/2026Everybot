@@ -39,7 +39,7 @@ public class FeedbackSubsystem extends SubsystemBase {
     this.controller = controller;
 
     // Initialize LED strip
-    ledStrip = new AddressableLED(PWMConstants.LEDStringID);
+    ledStrip = new AddressableLED(PWMConstants.kLEDStringID);
     ledBuffer = new AddressableLEDBuffer(FeedbackConstants.LEDLength);
     
     ledStrip.setLength(ledBuffer.getLength());
