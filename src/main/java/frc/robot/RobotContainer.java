@@ -151,17 +151,28 @@ public class RobotContainer {
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
   private void configureBindings() {   
-    // reset gyro and odometry
-    driverXbox.start().onTrue((Commands.runOnce(driveSubsystem::resetOdometryCommand)));
+    // manually reset odometry
+    driverXbox.start().onTrue((
+      Commands.runOnce(driveSubsystem::resetOdometryCommand).ignoringDisable(true)
+    ));
 
     // climb down while holding left trigger
-    driverXbox.leftTrigger().whileTrue(climberSubsystem.downCommand());
+    driverXbox.b().whileTrue(climberSubsystem.downCommand());
 
     // climb up while holding right trigger
-    driverXbox.rightTrigger().whileTrue(climberSubsystem.upCommand());
+    driverXbox.y().whileTrue(climberSubsystem.upCommand());
 
-    // intake fuel from the ground while holding left bumper
-    driverXbox.leftBumper().whileTrue(fuelSubsystem.intakeCommand());
+    // intake fuel from the ground while holding left trigger
+    driverXbox.leftTrigger().whileTrue(fuelSubsystem.intakeCommand());
+
+    // pass fuel from the launcher while holding left bumper
+    driverXbox.leftBumper().whileTrue(
+      fuelSubsystem.spinUpCommand().withTimeout(FuelConstants.kSpinUpSeconds)
+      .andThen(fuelSubsystem.passCommand())      
+    );
+
+    // auto-aim at hub holding left trigger
+    driverXbox.rightTrigger().whileTrue(driveSubsystem.aimAtHubCommand());
 
     // launch fuel while holding right bumper
     driverXbox.rightBumper().whileTrue(
@@ -174,8 +185,6 @@ public class RobotContainer {
 
     // not used
     driverXbox.back().onTrue(Commands.none());
-    driverXbox.y().onTrue(Commands.none());
-    driverXbox.b().onTrue(Commands.none());
     driverXbox.x().onTrue(Commands.none());
   }
 

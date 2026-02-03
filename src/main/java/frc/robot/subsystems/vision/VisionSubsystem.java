@@ -114,6 +114,8 @@ public class VisionSubsystem extends SubsystemBase {
     updateVisionMeasurements();
   }
 
+  // ==================== Internal State Modifiers ====================
+  
   /**
    * Update each camera cache
    * The camera's updateCache() function should be the ONLY
@@ -321,6 +323,8 @@ public class VisionSubsystem extends SubsystemBase {
       lastTargetLogTimestamp = currentTime;
     }
   }
+
+  // ==================== Public state accessors ====================
 
   /**
    * Check if a given pose is within the field boundaries

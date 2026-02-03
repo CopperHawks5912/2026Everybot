@@ -30,6 +30,7 @@ import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
@@ -43,6 +44,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Constants.CANConstants;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.subsystems.vision.VisionSubsystem.VisionMeasurement;
 import frc.robot.util.Utils;
@@ -61,10 +63,13 @@ public class DifferentialSubsystem extends SubsystemBase {
   private final DifferentialDrivePoseEstimator poseEstimator;
   private final DifferentialDriveKinematics kinematics;
 
-  // PID controllers
+  // PID controllers for driving
   private final PIDController leftPIDController;
   private final PIDController rightPIDController;
   private final SimpleMotorFeedforward feedForward;
+
+  // PID controller for aiming
+  private final PIDController aimPIDController;
 
   // Slew rate limiters to make joystick inputs smoother
   private final SlewRateLimiter xSpeedLimiter;
@@ -100,7 +105,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     leftEncoder = leftLeaderMotor.getEncoder();
     rightEncoder = rightLeaderMotor.getEncoder();
 
-    // Initialize PID controllers for velocity control
+    // Initialize PID controllers for driving
     leftPIDController = new PIDController(DifferentialConstants.kP, 0, 0);
     rightPIDController = new PIDController(DifferentialConstants.kP, 0, 0);
     feedForward = new SimpleMotorFeedforward(
@@ -108,6 +113,11 @@ public class DifferentialSubsystem extends SubsystemBase {
       DifferentialConstants.kV,
       DifferentialConstants.kA
     );
+
+    // Initialize PID controller for aiming
+    aimPIDController = new PIDController(3.5, 0.0, 0.15);
+    aimPIDController.enableContinuousInput(-Math.PI, Math.PI);
+    aimPIDController.setTolerance(Math.toRadians(2.0)); // 2 degree tolerance
 
     // Configure motors (do this before creating DifferentialDrive b/c left inverted motors)
     configureMotors();
@@ -449,7 +459,10 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @param zRotation The rotation rate
    */
   private void driveArcade(double xSpeed, double zRotation) {
-    drive.arcadeDrive(xSpeed, zRotation);
+    drive.arcadeDrive(
+      MathUtil.clamp(xSpeed, -1.0, 1.0), 
+      MathUtil.clamp(zRotation, -1.0, 1.0)
+    );
   }
 
   // ==================== Command Factories ====================
@@ -482,39 +495,39 @@ public class DifferentialSubsystem extends SubsystemBase {
   }
 
   /**
-   * Creates a command to aim the robot at a specified target pose
-   * @param targetPose The Pose2d to aim at
-   * @return Command to aim at the target pose
+   * Creates a command to aim the robot at the alliance's scoring hub using PID
+   * @return Command to aim at the scoring hub
    */  
-  public Command aimAtTargetCommand(Pose2d targetPose) {
-    // Deferred command to get latest pose when scheduled
-    // Set.of(this) ensures driveSubsystem is required
-    return Commands.defer(() -> {
-      // Check for null target pose
-      if (targetPose == null) {
-        return Commands.none();
-      }
-
-      // Use PathPlanner to drive to current position with rotation toward target
+  public Command aimAtHubCommand() {
+    return run(() -> {
+      // Get current pose
       Pose2d currentPose = getPose();
-      double dx = targetPose.getX() - currentPose.getX();
-      double dy = targetPose.getY() - currentPose.getY();
-      Rotation2d angleToTarget = new Rotation2d(dx, dy);
       
-      // Create target pose at current location but rotated toward target
-      Pose2d aimPose = new Pose2d(currentPose.getTranslation(), angleToTarget);
+      // Get hub position (coordinates in meters to the center of the hub)
+      // See: https://firstfrc.blob.core.windows.net/frc2026/FieldAssets/2026-field-dimension-dwgs.pdf
+      Translation2d hubPosition = Utils.isRedAlliance() 
+        ? FieldConstants.kRedHubCenter 
+        : FieldConstants.kBlueHubCenter;
       
-      // Pathfind to the aim pose (will only rotate since translation is same)
-      PathConstraints constraints = new PathConstraints(
-        0.5, 
-        DifferentialConstants.kMaxAccelMetersPerSecondSq,
-        DifferentialConstants.kMaxAngularSpeedRadsPerSecond, 
-        DifferentialConstants.kMaxAngularAccelRadsPerSecondSq
+      // Calculate target angle
+      Translation2d toHub = hubPosition.minus(currentPose.getTranslation());
+      Rotation2d targetAngle = new Rotation2d(toHub.getX(), toHub.getY());
+      
+      // Calculate rotation speed using PID
+      double rotationSpeed = aimPIDController.calculate(
+        currentPose.getRotation().getRadians(),
+        targetAngle.getRadians()
       );
       
-      // Return the command to aim at the target
-      return AutoBuilder.pathfindToPose(aimPose, constraints, 0.0);
-    }, Set.of(this));
+      // Clamp to reasonable speed
+      rotationSpeed = MathUtil.clamp(rotationSpeed, -0.6, 0.6);
+      
+      // Drive
+      driveArcade(0.0, rotationSpeed);
+    })
+    .until(aimPIDController::atSetpoint)
+    .finallyDo(this::stop)
+    .withName("AimAtHubDifferential");
   }
 
   /**

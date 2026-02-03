@@ -110,11 +110,8 @@ public class FuelSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {}
-  
-  // ==================== Sensor Methods ====================
-
-  
-  // ==================== Control Methods ====================
+    
+  // ==================== Internal State Modifiers ====================
   
   /**
    * Set roller motor to a specific voltage
@@ -135,15 +132,18 @@ public class FuelSubsystem extends SubsystemBase {
     feederMotor.set(clampedPower);
   }
   
-  /**
-   * Stop all the motors
-   */
-  private void stop() {
-    setIntakeLauncherRoller(0);
-    setFeederRoller(0);
-  }
-  
   // ==================== Command Factories ====================
+  
+  /**
+   * Command to stop the rollers
+   * @return Command that stops the roller motors
+   */
+  public Command stopCommand() {
+    return runOnce(() -> {
+      setIntakeLauncherRoller(0);
+      setFeederRoller(0);
+    }).withName("StopIntake");
+  }
   
   /**
    * Command to intake fuel from the ground
@@ -180,6 +180,17 @@ public class FuelSubsystem extends SubsystemBase {
   }
   
   /**
+   * Command to pass fuel out of the launcher at a lower speed
+   * @return Command that runs rollers at a speed for passing fuel
+   */
+  public Command passCommand() {
+    return run(() -> {
+      setIntakeLauncherRoller(FuelConstants.kLauncherPassingPercent);
+      setFeederRoller(FuelConstants.kFeederPassingPercent);
+    }).withName("PassFuel");
+  }
+  
+  /**
    * Command to launch/shoot fuel
    * @return Command that runs rollers at launch speed for fuel
    */
@@ -199,15 +210,6 @@ public class FuelSubsystem extends SubsystemBase {
       setIntakeLauncherRoller(FuelConstants.kLauncherLaunchingPercent);
       setFeederRoller(FuelConstants.kFeederLaunchingPercent);
     }).withName("LaunchFuel");
-  }
-  
-  /**
-   * Command to stop the rollers
-   * @return Command that stops the roller motors
-   */
-  public Command stopCommand() {
-    return runOnce(this::stop)
-      .withName("StopIntake");
   }
   
   // ==================== Telemetry Methods ====================

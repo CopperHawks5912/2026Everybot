@@ -16,10 +16,12 @@ public final class FuelConstants {
   // All values likely need to be tuned based on your robot
   public static final double kFeederIntakingPercent         = -0.80; 
   public static final double kFeederLaunchingPercent        =  0.60;
+  public static final double kFeederPassingPercent          =  0.60;
   public static final double kFeederSpinUpPreLaunchPercent  = -0.50;
 
   public static final double kIntakeIntakingPercent         =  0.60;
   public static final double kLauncherLaunchingPercent      =  0.85;
+  public static final double kLauncherPassingPercent        =  0.60;
   public static final double kIntakeEjectPercent            = -0.80;
 
   public static final double kSpinUpSeconds                 =  0.75;

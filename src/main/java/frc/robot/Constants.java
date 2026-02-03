@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -63,5 +64,7 @@ public final class Constants {
     public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
     public static final double kFieldLengthMeters = Units.inchesToMeters(651.25); // meters
     public static final double kFieldWidthMeters = Units.inchesToMeters(315.5); // meters
+    public static final Translation2d kRedHubCenter = new Translation2d(Units.inchesToMeters(158.84), Units.inchesToMeters(182.11));
+    public static final Translation2d kBlueHubCenter = new Translation2d(Units.inchesToMeters(158.84), Units.inchesToMeters(469.11));
   }
 }

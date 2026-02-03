@@ -20,8 +20,8 @@ import edu.wpi.first.math.util.Units;
  */
 public final class DifferentialConstants {
   // Drive control constants
-  public static final double kTranslationScaling = 1.0; // Scale for maximum speed of the robot
-  public static final double kRotationScaling = 1.0; // Scale for maximum rotational speed of the robot
+  public static final double kTranslationScaling = 0.85; // Scale for maximum speed of the robot
+  public static final double kRotationScaling = 0.6; // Scale for maximum rotational speed of the robot
   public static final double kTranslationalSlewRateLimit = 3.0; // meters per second squared
   public static final double kRotationalSlewRateLimit = 3.0; // radians per second squared
   public static final double kJoystickDeadband = 0.05;

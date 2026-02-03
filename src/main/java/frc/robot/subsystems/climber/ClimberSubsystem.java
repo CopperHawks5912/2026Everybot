@@ -63,11 +63,8 @@ public class ClimberSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {}
-  
-  // ==================== Sensor Methods ====================
-
-  
-  // ==================== Control Methods ====================
+    
+  // ==================== Internal State Modifiers ====================
   
   /**
    * Set roller motor to a specific voltage
@@ -76,13 +73,6 @@ public class ClimberSubsystem extends SubsystemBase {
   private void setPower(double power) {
     double clampedPower = MathUtil.clamp(power, -1, 1);
     climberMotor.set(clampedPower);
-  }
-  
-  /**
-   * Stop the roller motor
-   */
-  private void stop() {
-    setPower(0);
   }
   
   // ==================== Command Factories ====================
@@ -110,7 +100,7 @@ public class ClimberSubsystem extends SubsystemBase {
    * @return Command that stops the roller motor
    */
   public Command stopCommand() {
-    return runOnce(this::stop)
+    return runOnce(() -> setPower(0))
       .withName("StopClimber");
   }
   
