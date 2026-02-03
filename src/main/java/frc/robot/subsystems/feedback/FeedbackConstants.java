@@ -17,6 +17,9 @@ import edu.wpi.first.wpilibj.util.Color;
 public final class FeedbackConstants {
   /** Number of LEDs in the strip */
   public static final int LEDLength = 60;
+
+  /** Color for indicating that the robot is aimed at the hub */
+  public static final Color AimedAtHubColor = Color.kGreen;
       
   /** Color when robot is idle/ready (soft blue) */
   public static final Color IdleColor = new Color(0.0, 0.3, 1.0);
@@ -40,7 +43,10 @@ public final class FeedbackConstants {
     /** All LEDs off */
     OFF,
     
-    /** Robot idle/ready state */
+    /** Robot is aimed at the hub */
+    AIMED_AT_HUB,
+    
+    /** Robot is idle/ready state */
     IDLE,
     
     /** Warning state */

@@ -81,6 +81,10 @@ public class FeedbackSubsystem extends SubsystemBase {
       case OFF:
         setAllLEDs(Color.kBlack);
         break;
+
+      case AIMED_AT_HUB:
+        blinkPattern(FeedbackConstants.AimedAtHubColor, 0.50);
+        break;
         
       case IDLE:
         chasePattern(FeedbackConstants.IdleColor, 0.50);
@@ -396,6 +400,18 @@ public class FeedbackSubsystem extends SubsystemBase {
    */
   public Command teamColorsCommand() {
     return setDisplayCommand(DisplayMode.TEAM_COLORS);
+  }
+  
+  /**
+   * Command to display aimed at hub state
+   * @return Command that shows aimed at hub LED display and rumble
+   */
+  public Command aimedAtHubCommand() {
+    return setDisplayCommand(DisplayMode.AIMED_AT_HUB)
+      .andThen(doubleRumbleCommand())
+      .andThen(Commands.waitSeconds(1.0))
+      .andThen(setDisplayCommand(DisplayMode.SCORING_SHIFT))
+      .withName("AimedAtHub");
   }
   
   /**
