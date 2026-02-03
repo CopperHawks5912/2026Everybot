@@ -465,6 +465,18 @@ public class DifferentialSubsystem extends SubsystemBase {
     );
   }
 
+  // ==================== State Methods ====================
+
+  /**
+   * Get the distance to the current alliance hub
+   * @return Distance in meters to the alliance hub
+   */
+  public double getDistanceToAllianceHub() {
+    return getPose().getTranslation().getDistance(
+      Utils.isRedAlliance() ? FieldConstants.kRedHubCenter : FieldConstants.kBlueHubCenter
+    );
+  }
+
   // ==================== Command Factories ====================
   
   /**

@@ -179,7 +179,7 @@ public class RobotContainer {
     // launch fuel while holding right bumper
     driverXbox.rightBumper().whileTrue(
       fuelSubsystem.spinUpCommand().withTimeout(FuelConstants.kSpinUpSeconds)
-      .andThen(fuelSubsystem.launchCommand(() -> -1))      
+      .andThen(fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub()))
     );
 
     // eject fuel through the intake while holding the A button
