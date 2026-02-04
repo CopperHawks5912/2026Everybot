@@ -18,6 +18,7 @@ import com.revrobotics.spark.SparkBase.ControlType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -78,8 +79,8 @@ public class FuelSubsystem extends SubsystemBase {
     // - populate with real data after testing
     launcherRPM = new InterpolatingDoubleTreeMap();
     launcherRPM.put(0.0, 1000.0);   // Close range
-    launcherRPM.put(5.0, 3500.0);   // Mid range
-    launcherRPM.put(10.0, 5500.0);  // Far range
+    launcherRPM.put(4.13, 3500.0);  // Mid range
+    launcherRPM.put(8.27, 5500.0);  // Far range
 
     // Initialize dashboard
     SmartDashboard.putData("Fuel", this);
@@ -171,12 +172,15 @@ public class FuelSubsystem extends SubsystemBase {
    * @param rpm RPM to set the intake/launcher motors to
    */
   private void setLauncherVelocity(double rpm) {
+    // clamp RPM to valid range (NEO max ~6000 RPM) 
+    double clampedRPM = MathUtil.clamp(rpm, 0, 6000); 
+
     // cache target RPM
-    targetRPM = rpm;
+    targetRPM = clampedRPM;
     
     // Use PID + feedforward for better tracking
-    leftController.setSetpoint(rpm, ControlType.kVelocity);
-    rightController.setSetpoint(rpm, ControlType.kVelocity);
+    leftController.setSetpoint(clampedRPM, ControlType.kVelocity);
+    rightController.setSetpoint(clampedRPM, ControlType.kVelocity);
   }
   
   /**
@@ -308,7 +312,7 @@ public class FuelSubsystem extends SubsystemBase {
       // Calculate target RPM based on distance
       double distance = distanceToHub.getAsDouble();
       double rpm;
-      if (distance >= 0 && distance <= 10) {
+      if (distance >= 0 && distance <= 8.27) {
         rpm = launcherRPM.get(distance);
       } else {
         rpm = FuelConstants.kLauncherLaunchingRPM;
