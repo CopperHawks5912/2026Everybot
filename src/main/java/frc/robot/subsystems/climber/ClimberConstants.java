@@ -5,15 +5,20 @@
 package frc.robot.subsystems.climber;
 
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This
- * class should not be used for any other purpose. All constants should be declared globally (i.e. public static). Do
- * not put anything functional in this class.
- *
- * It is advised to statically import this class (or one of its inner classes) wherever the
- * constants are needed, to reduce verbosity.
+ * Constants for the Climber subsystem
+ * All values should be tuned based on your specific robot
  */
 public final class ClimberConstants {
-  // motor speeds from -1.0 to 1.0 (-100% to 100%)
-  public static double UpPercent   =  0.80; 
-  public static double DownPercent = -0.80; 
+  // Motor power percentages
+  public static final double kUpPercent   =  0.80;  // Power for extending climber
+  public static final double kDownPercent = -0.80;  // Power for retracting climber (negative)
+  
+  // Soft limits (in encoder rotations)
+  // Set these based on your climber's physical range of motion
+  public static final double kUpperLimitRotations = 100.0;  // Maximum extension
+  public static final double kLowerLimitRotations = 0.0;    // Fully retracted (home position)
+  
+  // Stall detection thresholds
+  public static final double kStallCurrentThreshold  = 35.0;   // Amps - indicates motor is working hard
+  public static final double kStallVelocityThreshold = 0.5;    // Rotations/sec - indicates motor not moving
 }

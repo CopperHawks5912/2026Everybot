@@ -16,6 +16,7 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -34,6 +35,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -60,8 +62,8 @@ public class DifferentialSubsystem extends SubsystemBase {
   private final DifferentialDrive drive;
   private final AHRS gyro;
 
-  private final DifferentialDrivePoseEstimator poseEstimator;
   private final DifferentialDriveKinematics kinematics;
+  private final DifferentialDrivePoseEstimator poseEstimator;
 
   // PID controllers for driving
   private final PIDController leftPIDController;
@@ -95,13 +97,16 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Create the gyro
     gyro = new AHRS(NavXComType.kMXP_SPI);
 
-    // Initialize drive motors
-    leftLeaderMotor = new SparkMax(CANConstants.kLeftDifferentialLeaderMotorID, null);
-    leftFollowerMotor = new SparkMax(CANConstants.kLeftDifferentialFollowerMotorID, null);
-    rightLeaderMotor = new SparkMax(CANConstants.kRightDifferentialLeaderMotorID, null);
-    rightFollowerMotor = new SparkMax(CANConstants.kRightDifferentialFollowerMotorID, null);
+    // Initialize drive motors with correct MotorType
+    leftLeaderMotor = new SparkMax(CANConstants.kLeftDifferentialLeaderMotorID, MotorType.kBrushless);
+    leftFollowerMotor = new SparkMax(CANConstants.kLeftDifferentialFollowerMotorID, MotorType.kBrushless);
+    rightLeaderMotor = new SparkMax(CANConstants.kRightDifferentialLeaderMotorID, MotorType.kBrushless);
+    rightFollowerMotor = new SparkMax(CANConstants.kRightDifferentialFollowerMotorID, MotorType.kBrushless);
 
-    // Get the encoders
+    // Configure motors (do this before creating DifferentialDrive and getting encoders)
+    configureMotors();
+
+    // Get the encoders (after motor configuration)
     leftEncoder = leftLeaderMotor.getEncoder();
     rightEncoder = rightLeaderMotor.getEncoder();
 
@@ -115,12 +120,13 @@ public class DifferentialSubsystem extends SubsystemBase {
     );
 
     // Initialize PID controller for aiming
-    aimPIDController = new PIDController(3.5, 0.0, 0.15);
+    aimPIDController = new PIDController(
+      DifferentialConstants.kAimP, 
+      DifferentialConstants.kAimI, 
+      DifferentialConstants.kAimD
+    );
     aimPIDController.enableContinuousInput(-Math.PI, Math.PI);
-    aimPIDController.setTolerance(Math.toRadians(2.0)); // 2 degree tolerance
-
-    // Configure motors (do this before creating DifferentialDrive b/c left inverted motors)
-    configureMotors();
+    aimPIDController.setTolerance(DifferentialConstants.kAimToleranceRad);
 
     // set up differential drive class
     drive = new DifferentialDrive(leftLeaderMotor, rightLeaderMotor);
@@ -134,7 +140,9 @@ public class DifferentialSubsystem extends SubsystemBase {
       gyro.getRotation2d(), 
       0.0, 
       0.0, 
-      new Pose2d()
+      new Pose2d(),
+      VecBuilder.fill(0.02, 0.02, 0.01), // State standard deviations (x, y, theta)
+      VecBuilder.fill(0.1, 0.1, 0.1)     // Vision standard deviations (will be overridden)
     );
 
     // Configure AutoBuilder for path following
@@ -163,7 +171,8 @@ public class DifferentialSubsystem extends SubsystemBase {
     field2d.setRobotPose(getPose());
 
     // Initialize dashboard
-    SmartDashboard.putData("Differential", this);
+    SmartDashboard.putData("Drive/Field", field2d);
+    SmartDashboard.putData("Drive/Differential", this);
     
     // Output initialization progress
     Utils.logInfo("Differential subsystem initialized");
@@ -193,10 +202,11 @@ public class DifferentialSubsystem extends SubsystemBase {
       .smartCurrentLimit(60) // amps
       .idleMode(IdleMode.kBrake);
 
-    // Set the position conversion factor for the encoders    
+    // Set the position and velocity conversion factors for the encoders
+    // This converts encoder ticks to meters and meters/second
     motorConfig.encoder
-      .positionConversionFactor(DifferentialConstants.kWheelCircumferenceMeters / DifferentialConstants.kEncoderResolution)
-      .velocityConversionFactor(DifferentialConstants.kWheelCircumferenceMeters / DifferentialConstants.kEncoderResolution);
+      .positionConversionFactor(DifferentialConstants.kPositionConversionFactor)
+      .velocityConversionFactor(DifferentialConstants.kVelocityConversionFactor);
 
     // Set configuration to follow each leader and then apply it to corresponding
     // follower. Resetting in case a new controller is swapped in and persisting 
@@ -224,7 +234,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     );
     
     // Set config to inverted and then apply to left leader. Set Left side inverted
-    // so that postive values drive both sides forward
+    // so that positive values drive both sides forward
     motorConfig.inverted(true);
     leftLeaderMotor.configure(
       motorConfig, 
@@ -258,23 +268,40 @@ public class DifferentialSubsystem extends SubsystemBase {
    */
   private void addVisionMeasurements() {
     // Exit early if vision subsystem is not available or is disabled
-    if (visionSubsystem == null || !visionSubsystem.isEnabled()) return;
+    if (visionSubsystem == null || !visionSubsystem.isEnabled()) {
+      return;
+    }
 
     // Get current time
     double now = Timer.getFPGATimestamp();
     
     // Get all latest vision measurements
     List<VisionMeasurement> measurements = visionSubsystem.getLatestMeasurements();
+    
+    // Exit if no measurements
+    if (measurements == null || measurements.isEmpty()) {
+      return;
+    }
 
     // Process each vision measurement
     for (VisionMeasurement measurement : measurements) {
       try {
+        // Validate measurement exists
+        if (measurement == null) {
+          continue;
+        }
+        
         Pose2d visionPose = measurement.getPose();
         double timestamp = measurement.getTimestampSeconds();
         double[] stdDevs = measurement.getStandardDeviations();
+        
+        // Validate components
+        if (visionPose == null || stdDevs == null || stdDevs.length < 3) {
+          continue;
+        }
 
         // Reject timestamps older than 0.3 seconds
-        if ((now - timestamp) > 0.3) {
+        if ((now - timestamp) > DifferentialConstants.kVisionMeasurementMaxAge) {
           continue;
         }
 
@@ -286,16 +313,19 @@ public class DifferentialSubsystem extends SubsystemBase {
         // Get the robot's current pose
         Pose2d robotPose = poseEstimator.getEstimatedPosition();
 
-        // Reject large translation jumps. 
-        // Typical thresholds: 
-        //    Auto:   0.5m – 0.75m
-        //    Teleop: 1.0m – 1.50m
-        if (robotPose.getTranslation().getDistance(visionPose.getTranslation()) > 1.0) {
+        // Reject large translation jumps
+        double translationDistance = robotPose.getTranslation().getDistance(visionPose.getTranslation());
+        if (translationDistance > DifferentialConstants.kVisionMaxTranslationJump) {
+          SmartDashboard.putNumber("Drive/Vision Rejected Translation (m)", translationDistance);
           continue;
         }
 
-        // Reject rotations > 30 degrees
-        if (Math.abs(robotPose.getRotation().minus(visionPose.getRotation()).getDegrees()) > 30.0) {
+        // Reject large rotation jumps
+        double rotationDifference = Math.abs(
+          robotPose.getRotation().minus(visionPose.getRotation()).getDegrees()
+        );
+        if (rotationDifference > DifferentialConstants.kVisionMaxRotationJump) {
+          SmartDashboard.putNumber("Drive/Vision Rejected Rotation (deg)", rotationDifference);
           continue;
         }
 
@@ -309,7 +339,10 @@ public class DifferentialSubsystem extends SubsystemBase {
           visionPose,
           timestamp,
           VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
-        );          
+        );
+        
+        SmartDashboard.putNumber("Drive/Vision Accepted Count", 
+          SmartDashboard.getNumber("Drive/Vision Accepted Count", 0) + 1);
       } catch (Exception e) {
         Utils.logError("Error adding vision measurement: " + e.getMessage());
       }
@@ -333,6 +366,8 @@ public class DifferentialSubsystem extends SubsystemBase {
       rightEncoder.getPosition(),
       new Pose2d()
     );
+    
+    Utils.logInfo("Odometry reset to origin");
   }
 
   /**
@@ -356,8 +391,11 @@ public class DifferentialSubsystem extends SubsystemBase {
     double rightPID = rightPIDController.calculate(rightVelocity, wheelSpeeds.rightMetersPerSecond);
     
     // Combine and set voltages
-    leftLeaderMotor.setVoltage(leftFF + leftPID);
-    rightLeaderMotor.setVoltage(rightFF + rightPID);
+    double leftVoltage = MathUtil.clamp(leftFF + leftPID, -12.0, 12.0);
+    double rightVoltage = MathUtil.clamp(rightFF + rightPID, -12.0, 12.0);
+    
+    leftLeaderMotor.setVoltage(leftVoltage);
+    rightLeaderMotor.setVoltage(rightVoltage);
     drive.feed();
   }
 
@@ -379,9 +417,15 @@ public class DifferentialSubsystem extends SubsystemBase {
 
   /**
    * Reset the robot's pose to a specific location
-   * @param pose
+   * @param pose The new pose to reset to
    */
   private void resetPose(Pose2d pose) {
+    // Validate pose
+    if (pose == null) {
+      Utils.logError("Cannot reset to null pose");
+      return;
+    }
+    
     // reset encoders
     resetEncoders();
 
@@ -392,6 +436,9 @@ public class DifferentialSubsystem extends SubsystemBase {
       rightEncoder.getPosition(),
       pose
     );
+    
+    Utils.logInfo(String.format("Pose reset to: (%.2f, %.2f, %.2f°)", 
+      pose.getX(), pose.getY(), pose.getRotation().getDegrees()));
   }
 
   /**
@@ -455,8 +502,8 @@ public class DifferentialSubsystem extends SubsystemBase {
 
   /**
    * Drive the differential in arcade mode (used in teleop)
-   * @param xSpeed    The forward/backward speed
-   * @param zRotation The rotation rate
+   * @param xSpeed    The forward/backward speed (-1.0 to 1.0)
+   * @param zRotation The rotation rate (-1.0 to 1.0)
    */
   private void driveArcade(double xSpeed, double zRotation) {
     drive.arcadeDrive(
@@ -472,9 +519,41 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @return Distance in meters to the alliance hub
    */
   public double getDistanceToAllianceHub() {
-    return getPose().getTranslation().getDistance(
-      Utils.isRedAlliance() ? FieldConstants.kRedHubCenter : FieldConstants.kBlueHubCenter
-    );
+    Translation2d hubCenter = Utils.isRedAlliance() 
+      ? FieldConstants.kRedHubCenter 
+      : FieldConstants.kBlueHubCenter;
+    return getPose().getTranslation().getDistance(hubCenter);
+  }
+  
+  /**
+   * Get the average motor current
+   * @return Average current in amps
+   */
+  public double getCurrent() {
+    return (leftLeaderMotor.getOutputCurrent() + 
+            leftFollowerMotor.getOutputCurrent() +
+            rightLeaderMotor.getOutputCurrent() + 
+            rightFollowerMotor.getOutputCurrent()) / 4.0;
+  }
+  
+  /**
+   * Get the average motor temperature
+   * @return Average temperature in Celsius
+   */
+  public double getTemperature() {
+    return (leftLeaderMotor.getMotorTemperature() + 
+            leftFollowerMotor.getMotorTemperature() +
+            rightLeaderMotor.getMotorTemperature() + 
+            rightFollowerMotor.getMotorTemperature()) / 4.0;
+  }
+  
+  /**
+   * Get the average motor voltage
+   * @return Average applied voltage
+   */
+  public double getVoltage() {
+    return (leftLeaderMotor.getAppliedOutput() * leftLeaderMotor.getBusVoltage() +
+            rightLeaderMotor.getAppliedOutput() * rightLeaderMotor.getBusVoltage()) / 2.0;
   }
 
   // ==================== Command Factories ====================
@@ -489,8 +568,9 @@ public class DifferentialSubsystem extends SubsystemBase {
   }
 
   /**
-   * Command to stop the roller
-   * @return Command that stops the differential drive
+   * Command to set motor brake mode
+   * @param brake Whether to enable brake mode
+   * @return Command that sets the motor brake mode
    */
   public Command setMotorBrakeCommand(boolean brake) {
     return runOnce(() -> setMotorBrake(brake))
@@ -498,7 +578,7 @@ public class DifferentialSubsystem extends SubsystemBase {
   }
   
   /**
-   * Command to stop the roller
+   * Command to stop the drive
    * @return Command that stops the differential drive
    */
   public Command stopCommand() {
@@ -517,12 +597,12 @@ public class DifferentialSubsystem extends SubsystemBase {
       
       // Get hub position (coordinates in meters to the center of the hub)
       // See: https://firstfrc.blob.core.windows.net/frc2026/FieldAssets/2026-field-dimension-dwgs.pdf
-      Translation2d hubPosition = Utils.isRedAlliance() 
+      Translation2d hubCenter = Utils.isRedAlliance() 
         ? FieldConstants.kRedHubCenter 
         : FieldConstants.kBlueHubCenter;
       
       // Calculate target angle
-      Translation2d toHub = hubPosition.minus(currentPose.getTranslation());
+      Translation2d toHub = hubCenter.minus(currentPose.getTranslation());
       Rotation2d targetAngle = new Rotation2d(toHub.getX(), toHub.getY());
       
       // Calculate rotation speed using PID
@@ -538,7 +618,7 @@ public class DifferentialSubsystem extends SubsystemBase {
       driveArcade(0.0, rotationSpeed);
     })
     .until(aimPIDController::atSetpoint)
-    .finallyDo(this::stop)
+    .finallyDo(() -> stop())
     .withName("AimAtHubDifferential");
   }
 
@@ -553,6 +633,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     return Commands.defer(() -> {
       // Check for null target pose
       if (targetPose == null) {
+        Utils.logError("Cannot drive to null pose");
         return Commands.none();
       }
 
@@ -571,8 +652,8 @@ public class DifferentialSubsystem extends SubsystemBase {
 
   /**
    * Command to drive the differential in arcade mode
-   * @param xSupplier The forward/backward speed
-   * @param rSupplier The rotation rate
+   * @param xSupplier The forward/backward speed supplier
+   * @param rSupplier The rotation rate supplier
    * @return Command that drives the differential in arcade mode
    */
   public Command driveArcadeCommand(DoubleSupplier xSupplier, DoubleSupplier rSupplier) {
@@ -594,5 +675,25 @@ public class DifferentialSubsystem extends SubsystemBase {
       //    arcadeDrive automatically squares inputs for finer control at low speeds
       driveArcade(xSpeed, rSpeed);
     }).withName("DriveArcadeDifferential");
+  }
+  
+  // ==================== Telemetry Methods ====================
+
+  /**
+   * Initialize Sendable for SmartDashboard
+   */
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.setSmartDashboardType("DifferentialSubsystem");
+    builder.addStringProperty("Pose", () -> getPose().toString(), null);
+    builder.addDoubleProperty("Left Position (m)", () -> Utils.showDouble(leftEncoder.getPosition()), null);
+    builder.addDoubleProperty("Right Position (m)", () -> Utils.showDouble(rightEncoder.getPosition()), null);
+    builder.addDoubleProperty("Left Velocity (m/s)", () -> Utils.showDouble(leftEncoder.getVelocity()), null);
+    builder.addDoubleProperty("Right Velocity (m/s)", () -> Utils.showDouble(rightEncoder.getVelocity()), null);
+    builder.addDoubleProperty("Gyro Angle (deg)", () -> Utils.showDouble(gyro.getAngle()), null);
+    builder.addDoubleProperty("Dist To Hub (m)", () -> Utils.showDouble(getDistanceToAllianceHub()), null);
+    builder.addDoubleProperty("Voltage (V)", () -> Utils.showDouble(getVoltage()), null);
+    builder.addDoubleProperty("Current (A)", () -> Utils.showDouble(getCurrent()), null);
+    builder.addDoubleProperty("Temperature (C)", () -> Utils.showDouble(getTemperature()), null);
   }
 }

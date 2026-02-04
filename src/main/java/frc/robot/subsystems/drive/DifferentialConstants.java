@@ -4,64 +4,197 @@
 
 package frc.robot.subsystems.drive;
 
-import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.config.ModuleConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This
- * class should not be used for any other purpose. All constants should be declared globally (i.e. public static). Do
- * not put anything functional in this class.
- *
- * It is advised to statically import this class (or one of its inner classes) wherever the
- * constants are needed, to reduce verbosity.
+ * Constants for the differential drive subsystem
  */
 public final class DifferentialConstants {
-  // Drive control constants
-  public static final double kTranslationScaling = 0.85; // Scale for maximum speed of the robot
-  public static final double kRotationScaling = 0.6; // Scale for maximum rotational speed of the robot
-  public static final double kTranslationalSlewRateLimit = 3.0; // meters per second squared
-  public static final double kRotationalSlewRateLimit = 3.0; // radians per second squared
-  public static final double kJoystickDeadband = 0.05;
-
-  // Motion constraints (used by PathPlanner)
-  public static final double kMaxSpeedMetersPerSecond = 4.0; // Max translational speed
-  public static final double kMaxAccelMetersPerSecondSq = 3.0; // Max translational acceleration
-  public static final double kMaxAngularSpeedRadsPerSecond = Math.PI; // Max rotational speed
-  public static final double kMaxAngularAccelRadsPerSecondSq = Math.PI; // Max rotational acceleration
-
-  // Physical characteristics
-  public static final double kMaxDriveVelocityAt12VoltsMPS = 4.0; // Max velocity of the robot in meters per second
-  public static final double kWheelCOF = 0.8; // Coefficient of friction for the wheels
-  public static final double kRobotMassKg = Units.lbsToKilograms(100.0); // Mass of the robot
-  public static final double kRobotMOI = 5.0; // Moment of inertia of the robot
-  public static final double kTrackWidthMeters = Units.inchesToMeters(20.0); // Distance between left and right wheels
-  public static final double kWheelDiameterMeters = Units.inchesToMeters(4.0); // Diameter of the wheels
-  public static final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0; // Radius of the wheels
+  // ==================== Physical Robot Parameters ====================
+  
+  /**
+   * Track width (distance between left and right wheels) in meters
+   * Measure from the center of one wheel to the center of the other
+   */
+  public static final double kTrackWidthMeters = 0.60; // TODO: Measure your robot
+  
+  /**
+   * Wheel diameter in meters
+   */
+  public static final double kWheelDiameterMeters = Units.inchesToMeters(6); // 6 inches = 0.1524 meters
+  
+  /**
+   * Wheel circumference in meters
+   */
   public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
-  public static final double kEncoderResolution = 4096; // Encoder counts per revolution
-
-  // Drive PID + Feedforward
-  public static final double kP = 1.00;  // usually 0.5 - 2.0, Start with 1.0
-  public static final double kS = 0.15;  // usually 0.1 - 0.3, Static friction, start with 0.15
-  public static final double kV = 2.50;  // usually 2.0 - 3.0, Velocity FF, start with 2.5
-  public static final double kA = 0.30;  // usually 0.2 - 0.5, Acceleration FF, start with 0.3
-
-  // ------------------------------------------------------------
-  // Autobuilder RobotConfig for PathPlanner
-  // ------------------------------------------------------------
+  
+  /**
+   * Gear ratio from motor to wheel
+   * If motor spins X times, wheel spins 1 time
+   * Example: 10.71:1 gearbox means motor spins 10.71 times per wheel rotation
+   */
+  public static final double kGearRatio = 10.71; // TODO: Check your gearbox
+  
+  /**
+   * NEO encoder resolution (ticks per motor revolution)
+   * NEO encoders report 42 counts per revolution by default
+   */
+  public static final double kEncoderTicksPerRevolution = 42.0;
+  
+  /**
+   * Position conversion factor: converts encoder ticks to meters
+   * Formula: (wheel circumference) / (gear ratio * encoder ticks per rev)
+   */
+  public static final double kPositionConversionFactor = 
+    kWheelCircumferenceMeters / (kGearRatio * kEncoderTicksPerRevolution);
+  
+  /**
+   * Velocity conversion factor: converts encoder ticks/minute to meters/second
+   * Formula: position conversion factor / 60 (to convert minutes to seconds)
+   */
+  public static final double kVelocityConversionFactor = kPositionConversionFactor / 60.0;
+  
+  // ==================== Drive Control Parameters ====================
+  
+  /**
+   * Maximum speed in meters per second
+   * Typical values: 2-4 m/s for FRC drivetrains
+   */
+  public static final double kMaxSpeedMetersPerSecond = 3.0; // TODO: Characterize your robot
+  
+  /**
+   * Maximum acceleration in meters per second squared
+   */
+  public static final double kMaxAccelMetersPerSecondSq = 2.0; // TODO: Characterize your robot
+  
+  /**
+   * Maximum angular speed in radians per second
+   */
+  public static final double kMaxAngularSpeedRadsPerSecond = 2.0 * Math.PI; // TODO: Characterize
+  
+  /**
+   * Maximum angular acceleration in radians per second squared
+   */
+  public static final double kMaxAngularAccelRadsPerSecondSq = Math.PI; // TODO: Characterize
+  
+  // ==================== Joystick Control Parameters ====================
+  
+  /**
+   * Joystick deadband (ignore inputs below this threshold)
+   */
+  public static final double kJoystickDeadband = 0.1;
+  
+  /**
+   * Translational slew rate limit (units per second)
+   * Limits how quickly forward/backward speed can change
+   */
+  public static final double kTranslationalSlewRateLimit = 3.0;
+  
+  /**
+   * Rotational slew rate limit (units per second)
+   * Limits how quickly rotation speed can change
+   */
+  public static final double kRotationalSlewRateLimit = 3.0;
+  
+  /**
+   * Translation scaling factor (0.0 to 1.0)
+   * Reduces max speed for finer control
+   */
+  public static final double kTranslationScaling = 0.8;
+  
+  /**
+   * Rotation scaling factor (0.0 to 1.0)
+   * Reduces max rotation for finer control
+   */
+  public static final double kRotationScaling = 0.6;
+  
+  // ==================== PID Constants for Velocity Control ====================
+  
+  /**
+   * PID proportional gain for velocity control
+   */
+  public static final double kP = 0.0002; // TODO: Tune this value
+  
+  /**
+   * Feedforward kS - voltage needed to overcome static friction
+   * Units: Volts
+   */
+  public static final double kS = 0.22; // TODO: Use SysId to characterize
+  
+  /**
+   * Feedforward kV - voltage needed per unit of velocity
+   * Units: Volt-seconds/meter
+   */
+  public static final double kV = 2.6; // TODO: Use SysId to characterize
+  
+  /**
+   * Feedforward kA - voltage needed per unit of acceleration
+   * Units: Volt-seconds²/meter
+   */
+  public static final double kA = 0.4; // TODO: Use SysId to characterize
+  
+  // ==================== PID Constants for Aiming ====================
+  
+  /**
+   * Aiming PID proportional gain
+   */
+  public static final double kAimP = 3.5; // TODO: Tune this value
+  
+  /**
+   * Aiming PID integral gain
+   */
+  public static final double kAimI = 0.0;
+  
+  /**
+   * Aiming PID derivative gain
+   */
+  public static final double kAimD = 0.15; // TODO: Tune this value
+  
+  /**
+   * Aiming tolerance in radians (how close is "good enough")
+   */
+  public static final double kAimToleranceRad = Units.degreesToRadians(2.0);
+  
+  // ==================== Vision Parameters ====================
+  
+  /**
+   * Maximum age of vision measurements to accept (seconds)
+   */
+  public static final double kVisionMeasurementMaxAge = 0.3;
+  
+  /**
+   * Maximum allowed translation jump for vision measurements (meters)
+   * Rejects vision measurements that are too far from current estimate
+   */
+  public static final double kVisionMaxTranslationJump = 1.0;
+  
+  /**
+   * Maximum allowed rotation jump for vision measurements (degrees)
+   * Rejects vision measurements with too much rotation difference
+   */
+  public static final double kVisionMaxRotationJump = 30.0;
+  
+  // ==================== PathPlanner Configuration ====================
+  
+  /**
+   * Robot configuration for PathPlanner
+   * This is used by PathPlanner for trajectory generation
+   */
   public static final RobotConfig kRobotConfig = new RobotConfig(
-    kRobotMassKg,
-    kRobotMOI,
+    Units.lbsToKilograms(110.0),  // mass (kg) - TODO: Weigh your robot
+    6.0,   // MOI (kg*m²) - TODO: Calculate or estimate
     new ModuleConfig(
-      kWheelRadiusMeters,
-      kMaxDriveVelocityAt12VoltsMPS,
-      kWheelCOF, 
-      DCMotor.getCIM(1),
-      60.0,
-      2
-    )
+      kWheelDiameterMeters / 2.0, // wheel radius (m)
+      kMaxSpeedMetersPerSecond,  // max wheel speed (m/s)
+      1.0,  // wheel COF - TODO: Tune based on your wheels/carpet
+      DCMotor.getCIM(1), // drive motors: 1 CIM per side
+      60.0, // current limit (A)
+      2     // number of motors per module
+    ),
+    kTrackWidthMeters / 2.0 // module locations (just half track width for differential)
   );
 }

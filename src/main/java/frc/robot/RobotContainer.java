@@ -156,30 +156,29 @@ public class RobotContainer {
       Commands.runOnce(driveSubsystem::resetOdometryCommand).ignoringDisable(true)
     ));
 
-    // climb down while holding left trigger
+    // climb down while holding B button
     driverXbox.b().whileTrue(climberSubsystem.downCommand());
 
-    // climb up while holding right trigger
+    // climb up while holding Y button
     driverXbox.y().whileTrue(climberSubsystem.upCommand());
 
     // intake fuel from the ground while holding left trigger
     driverXbox.leftTrigger().whileTrue(fuelSubsystem.intakeCommand());
 
-    // pass fuel from the launcher while holding left bumper
-    driverXbox.leftBumper().whileTrue(
-      fuelSubsystem.spinUpCommand().withTimeout(FuelConstants.kSpinUpSeconds)
-      .andThen(fuelSubsystem.passCommand())      
+    // Pass fuel while holding left bumper
+    // Automatically spins up, then feeds when ready
+    driverXbox.leftBumper().whileTrue(fuelSubsystem.passCommand());
+
+    // Auto-aim at hub when pressing right trigger
+    driverXbox.rightTrigger().onTrue(
+      driveSubsystem.aimAtHubCommand()
+        .andThen(feedbackSubsystem.aimedAtHubCommand())
     );
 
-    // auto-aim at hub holding left trigger
-    driverXbox.rightTrigger().onTrue(driveSubsystem.aimAtHubCommand()
-      .andThen(feedbackSubsystem.aimedAtHubCommand())
-    );
-
-    // launch fuel while holding right bumper
+    // Launch fuel while holding right bumper
+    // Automatically calculates distance, spins up, feeds when ready
     driverXbox.rightBumper().whileTrue(
-      fuelSubsystem.spinUpCommand().withTimeout(FuelConstants.kSpinUpSeconds)
-      .andThen(fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub()))
+      fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub())
     );
 
     // eject fuel through the intake while holding the A button
