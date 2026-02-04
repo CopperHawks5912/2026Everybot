@@ -96,8 +96,10 @@ public class FuelSubsystem extends SubsystemBase {
     SparkMaxConfig feederConfig = new SparkMaxConfig();
 
     // motor output
-    feederConfig.smartCurrentLimit(80); // amps
-    feederConfig.idleMode(IdleMode.kBrake);
+    feederConfig
+      .smartCurrentLimit(80) // amps
+      .voltageCompensation(12)
+      .idleMode(IdleMode.kBrake);
 
     // apply configuration
     feederMotor.configure(
