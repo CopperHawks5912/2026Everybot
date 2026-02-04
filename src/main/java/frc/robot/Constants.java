@@ -52,9 +52,6 @@ public final class Constants {
    */
   public static class PWMConstants {
     public static final int kLEDStringID = 0;
-    public static final int kIntakeID    = 1;
-    public static final int kShooterID   = 2;
-    public static final int kClimberID   = 3;
   }
 
   /**
