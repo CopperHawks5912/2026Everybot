@@ -56,8 +56,8 @@ public class ClimberSubsystem extends SubsystemBase {
     // configure the climber motor
     climbConfig
       .smartCurrentLimit(40) // amps
-      .idleMode(IdleMode.kBrake) // CRITICAL: Brake mode prevents falling
-      .voltageCompensation(12); // Consistent behavior across battery voltage
+      .voltageCompensation(12) // Consistent behavior across battery voltage
+      .idleMode(IdleMode.kBrake); // CRITICAL: Brake mode prevents falling
 
     // apply configuration
     climberMotor.configure(
