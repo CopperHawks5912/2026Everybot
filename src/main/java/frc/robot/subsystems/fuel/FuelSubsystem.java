@@ -17,7 +17,6 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkBase.ControlType;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -43,9 +42,6 @@ public class FuelSubsystem extends SubsystemBase {
   private double targetRPM = 0;
   private final Timer recoveryTimer = new Timer();
   
-  // Lookup tables
-  private final InterpolatingDoubleTreeMap launcherRPM;
-  
   /** Creates a new FuelSubsystem. */
   public FuelSubsystem() {
     // Initialize hardware
@@ -70,16 +66,6 @@ public class FuelSubsystem extends SubsystemBase {
     
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
-
-    // Initialize lookup table for shoot RPM based on distance
-    // key: distance to hub (meters)
-    // value: launcher motor RPM
-    // TO DO:
-    // - populate with real data after testing
-    launcherRPM = new InterpolatingDoubleTreeMap();
-    launcherRPM.put(0.0, 1000.0);   // Close range
-    launcherRPM.put(4.13, 3500.0);  // Mid range
-    launcherRPM.put(8.27, 5500.0);  // Far range
 
     // Initialize dashboard
     SmartDashboard.putData("Fuel", this);
@@ -314,7 +300,7 @@ public class FuelSubsystem extends SubsystemBase {
       double distance = distanceToHub.getAsDouble();
       double rpm;
       if (distance >= 0 && distance <= 8.27) {
-        rpm = launcherRPM.get(distance);
+        rpm = FuelConstants.klauncherRPM.get(distance);
       } else {
         rpm = FuelConstants.kLauncherLaunchingRPM;
       }

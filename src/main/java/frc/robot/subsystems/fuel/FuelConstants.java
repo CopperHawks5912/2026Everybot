@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.fuel;
 
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This
  * class should not be used for any other purpose. All constants should be declared globally (i.e. public static). Do
@@ -48,4 +50,16 @@ public final class FuelConstants {
   // Timing constants
   public static final double kSpinUpSeconds                 =  0.75;
   public static final double kRecoveryDelaySeconds          =  0.15;
+
+  // Initialize lookup table for shoot RPM based on distance
+  // key: distance to hub (meters)
+  // value: launcher motor RPM
+  // TO DO:
+  // - populate with real data after testing
+  public static final InterpolatingDoubleTreeMap klauncherRPM = new InterpolatingDoubleTreeMap();
+  static {
+    klauncherRPM.put(0.0, 0.0);
+    klauncherRPM.put(10.0, 5.0);
+    klauncherRPM.put(20.0, 15.0);
+  }
 }
