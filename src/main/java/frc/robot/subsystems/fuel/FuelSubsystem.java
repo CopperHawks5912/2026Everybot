@@ -40,7 +40,6 @@ public class FuelSubsystem extends SubsystemBase {
 
   // Shooter state
   private double targetRPM = 0;
-  private final Timer recoveryTimer = new Timer();
   
   /** Creates a new FuelSubsystem. */
   public FuelSubsystem() {
@@ -60,9 +59,6 @@ public class FuelSubsystem extends SubsystemBase {
     // Initialize encoders
     leftEncoder = leftIntakeLauncherMotor.getEncoder();
     rightEncoder = rightIntakeLauncherMotor.getEncoder();
-    
-    // Start recovery timer
-    recoveryTimer.start();
     
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
