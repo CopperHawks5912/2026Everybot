@@ -17,6 +17,10 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkBase.ControlType;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -40,6 +44,19 @@ public class FuelSubsystem extends SubsystemBase {
   // Shooter state
   private double targetRPM = 0;
   
+  // Lookup tables
+  private final InterpolatingDoubleTreeMap launcherRPM;
+  
+  // NetworkTables for tuning (works with Elastic Dashboard)
+  private NetworkTable tuningTable;
+  private NetworkTableEntry tuningDistanceEntry;
+  private NetworkTableEntry tuningRPMEntry;
+  private NetworkTableEntry currentDistanceEntry;
+  private NetworkTableEntry currentRPMEntry;
+  private NetworkTableEntry leftVelocityEntry;
+  private NetworkTableEntry rightVelocityEntry;
+  private NetworkTableEntry atSpeedEntry;
+  
   /** Creates a new FuelSubsystem. */
   public FuelSubsystem() {
     // Initialize hardware
@@ -62,11 +79,79 @@ public class FuelSubsystem extends SubsystemBase {
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
 
+    // Initialize lookup table for shoot RPM based on distance
+    // This will be populated from tuning data
+    launcherRPM = new InterpolatingDoubleTreeMap();
+    loadDefaultLauncherMap();
+
     // Initialize dashboard
     SmartDashboard.putData("Fuel", this);
+
+    // Setup NetworkTables for tuning (works with Elastic)
+    setupNetworkTables();
     
     // Output initialization progress
     Utils.logInfo("Fuel subsystem initialized");
+  }
+  
+  /**
+   * Setup NetworkTables for tuning the launcher
+   * Compatible with both Shuffleboard and Elastic Dashboard
+   */
+  private void setupNetworkTables() {
+    // Get or create the tuning table
+    tuningTable = NetworkTableInstance.getDefault().getTable("LauncherTuning");
+    
+    // Create input entries with default values
+    tuningDistanceEntry = tuningTable.getEntry("TuneDistance");
+    tuningDistanceEntry.setDouble(5.0);
+    
+    tuningRPMEntry = tuningTable.getEntry("TuneRPM");
+    tuningRPMEntry.setDouble(3500.0);
+    
+    // Create output/display entries
+    currentDistanceEntry = tuningTable.getEntry("CurrentDistance");
+    currentDistanceEntry.setDouble(0.0);
+    
+    currentRPMEntry = tuningTable.getEntry("CurrentTargetRPM");
+    currentRPMEntry.setDouble(0.0);
+    
+    leftVelocityEntry = tuningTable.getEntry("LeftVelocity");
+    leftVelocityEntry.setDouble(0.0);
+    
+    rightVelocityEntry = tuningTable.getEntry("RightVelocity");
+    rightVelocityEntry.setDouble(0.0);
+    
+    atSpeedEntry = tuningTable.getEntry("AtSpeed");
+    atSpeedEntry.setBoolean(false);
+    
+    // Add commands to SmartDashboard so they appear in Elastic
+    SmartDashboard.putData("Launcher/TestTunedShot", testTunedShotCommand());
+    SmartDashboard.putData("Launcher/SaveTuningPoint", saveTuningPointCommand());
+    SmartDashboard.putData("Launcher/PrintLookupTable", printLookupTableCommand());
+    SmartDashboard.putData("Launcher/ResetToDefaults", resetLookupTableCommand());
+    
+    Utils.logInfo("Launcher tuning NetworkTables initialized");
+  }
+
+  /**
+   * Load default launcher RPM map
+   * These are starting values - tune them using Shuffleboard
+   */
+  private void loadDefaultLauncherMap() {
+    // Clear existing map
+    launcherRPM.clear();
+    
+    // Load from constants or use defaults
+    launcherRPM.put(0.0, 1000.0);   // Close range
+    launcherRPM.put(2.0, 2000.0);   // 2 meters
+    launcherRPM.put(3.0, 2500.0);   // 3 meters
+    launcherRPM.put(4.0, 3000.0);   // 4 meters
+    launcherRPM.put(5.0, 3500.0);   // Mid range
+    launcherRPM.put(6.0, 4000.0);   // 6 meters
+    launcherRPM.put(7.0, 4500.0);   // 7 meters
+    launcherRPM.put(8.0, 5000.0);   // 8 meters
+    launcherRPM.put(10.0, 5500.0);  // Far range
   }
   
   /**
@@ -103,6 +188,7 @@ public class FuelSubsystem extends SubsystemBase {
 
     // closed-loop velocity control parameters
     launcherConfig.closedLoop
+      .outputRange(-1, 1)
       .p(FuelConstants.kLauncherP)
       .i(0)
       .d(0);
@@ -132,7 +218,12 @@ public class FuelSubsystem extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+    // Update tuning table for Elastic
+    leftVelocityEntry.setDouble(leftEncoder.getVelocity());
+    rightVelocityEntry.setDouble(rightEncoder.getVelocity());
+    atSpeedEntry.setBoolean(isAtSpeed());
+  }
     
   // ==================== Internal State Modifiers ====================
   
@@ -190,6 +281,85 @@ public class FuelSubsystem extends SubsystemBase {
            rightError < FuelConstants.kLauncherToleranceRPM;
   }
   
+  // ==================== Tuning Commands ====================
+  
+  /**
+   * Command to test the currently tuned shot parameters
+   * Uses values from Shuffleboard sliders
+   */
+  public Command testTunedShotCommand() {
+    return run(() -> {
+      double testDistance = tuningDistanceEntry.getDouble(5.0);
+      double testRPM = tuningRPMEntry.getDouble(3500.0);
+      
+      // Update display
+      currentDistanceEntry.setDouble(testDistance);
+      currentRPMEntry.setDouble(testRPM);
+      
+      // Spin up to test RPM
+      setLauncherVelocity(testRPM);
+      
+      // Feed when at speed
+      if (isAtSpeed()) {
+        setFeederRoller(FuelConstants.kFeederLaunchingPercent);
+      } else {
+        setFeederRoller(FuelConstants.kFeederSpinUpPreLaunchPercent);
+      }
+    }).withName("TestTunedShot");
+  }
+  
+  /**
+   * Command to save the current tuning point to the lookup table
+   * Saves the distance/RPM pair from Shuffleboard sliders
+   */
+  public Command saveTuningPointCommand() {
+    return runOnce(() -> {
+      double distance = tuningDistanceEntry.getDouble(5.0);
+      double rpm = tuningRPMEntry.getDouble(3500.0);
+      
+      // Add or update the point in the map
+      launcherRPM.put(distance, rpm);
+      
+      Utils.logInfo(String.format("Saved tuning point: %.1fm → %.0f RPM", distance, rpm));
+      System.out.println(String.format("launcherRPM.put(%.1f, %.1f);", distance, rpm));
+    }).withName("SaveTuningPoint");
+  }
+  
+  /**
+   * Command to print the entire lookup table to the console
+   * Use this to copy/paste values into your code
+   */
+  public Command printLookupTableCommand() {
+    return runOnce(() -> {
+      System.out.println("========== LAUNCHER RPM LOOKUP TABLE ==========");
+      System.out.println("Copy these lines into loadDefaultLauncherMap method:");
+      System.out.println();
+      
+      // The TreeMap doesn't expose its entries directly, so we'll print what we know
+      System.out.println("// Tuned launcher RPM values");
+      System.out.println("launcherRPM.clear();");
+      
+      // Print sample distances and their interpolated values
+      for (double dist = 0.0; dist <= 10.0; dist += 0.5) {
+        double rpm = launcherRPM.get(dist);
+        System.out.println(String.format("launcherRPM.put(%.1f, %.1f);", dist, rpm));
+      }
+      
+      System.out.println();
+      System.out.println("========== END LOOKUP TABLE ==========");
+    }).withName("PrintLookupTable");
+  }
+  
+  /**
+   * Command to reset the lookup table to default values
+   */
+  public Command resetLookupTableCommand() {
+    return runOnce(() -> {
+      loadDefaultLauncherMap();
+      Utils.logInfo("Reset launcher lookup table to defaults");
+    }).withName("ResetLookupTable");
+  }
+
   // ==================== Command Factories ====================
   
   /**
@@ -295,7 +465,7 @@ public class FuelSubsystem extends SubsystemBase {
       double distance = distanceToHub.getAsDouble();
       double rpm;
       if (distance >= 0 && distance <= 8.27) {
-        rpm = FuelConstants.klauncherRPM.get(distance);
+        rpm = launcherRPM.get(distance);
       } else {
         rpm = FuelConstants.kLauncherLaunchingRPM;
       }
