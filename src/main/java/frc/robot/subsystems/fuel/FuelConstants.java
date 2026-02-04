@@ -59,7 +59,8 @@ public final class FuelConstants {
   public static final InterpolatingDoubleTreeMap klauncherRPM = new InterpolatingDoubleTreeMap();
   static {
     klauncherRPM.put(0.0, 0.0);
-    klauncherRPM.put(10.0, 5.0);
-    klauncherRPM.put(20.0, 15.0);
+    klauncherRPM.put(2.06, 3500.0);
+    klauncherRPM.put(4.13, 4500.0);
+    klauncherRPM.put(8.27, 5500.0);
   }
 }
