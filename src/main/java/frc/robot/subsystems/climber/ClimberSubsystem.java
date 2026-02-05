@@ -147,7 +147,7 @@ public class ClimberSubsystem extends SubsystemBase {
    * @return true if within tolerance of home position
    */
   public boolean isAtHomePosition() {
-    return Math.abs(getPosition() - ClimberConstants.kHomePosition) <= 0.1;
+    return Math.abs(getPosition() - ClimberConstants.kHomeRotations) <= 0.1;
   }
   
   /**
@@ -208,7 +208,7 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public Command homeCommand() {
     return run(() -> {
-      if (getPosition() > ClimberConstants.kHomePosition) {
+      if (getPosition() > ClimberConstants.kHomeRotations) {
         setPower(ClimberConstants.kDownPercent);
       } else {
         setPower(ClimberConstants.kUpPercent);
