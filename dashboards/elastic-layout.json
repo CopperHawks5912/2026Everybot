@@ -62,9 +62,9 @@
           },
           {
             "title": "FMSInfo",
-            "x": 325.0,
+            "x": 600.0,
             "y": 475.0,
-            "width": 750.0,
+            "width": 475.0,
             "height": 150.0,
             "type": "FMSInfo",
             "properties": {
@@ -74,9 +74,9 @@
           },
           {
             "title": "Match Time",
-            "x": 325.0,
+            "x": 600.0,
             "y": 350.0,
-            "width": 750.0,
+            "width": 475.0,
             "height": 125.0,
             "type": "Match Time",
             "properties": {
@@ -86,40 +86,6 @@
               "time_display_mode": "Minutes and Seconds",
               "red_start_time": 15,
               "yellow_start_time": 30
-            }
-          },
-          {
-            "title": "Connected",
-            "x": 0.0,
-            "y": 350.0,
-            "width": 175.0,
-            "height": 125.0,
-            "type": "Boolean Box",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/Camera/FRONT_CAMERA/Connected",
-              "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4283215696,
-              "false_color": 4294198070,
-              "true_icon": "None",
-              "false_icon": "None"
-            }
-          },
-          {
-            "title": "Has Targets",
-            "x": 175.0,
-            "y": 350.0,
-            "width": 150.0,
-            "height": 125.0,
-            "type": "Boolean Box",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/Camera/FRONT_CAMERA/Has Targets",
-              "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4283215696,
-              "false_color": 4286348412,
-              "true_icon": "None",
-              "false_icon": "None"
             }
           },
           {
@@ -147,27 +113,172 @@
             "title": "Dist To Hub (m)",
             "x": 0.0,
             "y": 475.0,
-            "width": 325.0,
+            "width": 600.0,
             "height": 150.0,
-            "type": "Number Bar",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/SmartDashboard/Drive/Differential/Dist To Hub (m)",
               "period": 0.06,
-              "data_type": "double",
-              "min_value": -1.0,
-              "max_value": 1.0,
-              "divisions": 5,
-              "inverted": false,
-              "orientation": "horizontal"
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "Connected",
+            "x": 0.0,
+            "y": 350.0,
+            "width": 150.0,
+            "height": 125.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Vision/Camera/VISION_FRONT/Connected",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Best Target ID",
+            "x": 150.0,
+            "y": 350.0,
+            "width": 300.0,
+            "height": 125.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Vision/Camera/VISION_FRONT/Best Target ID",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "Best Target Distance",
+            "x": 450.0,
+            "y": 350.0,
+            "width": 150.0,
+            "height": 125.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Vision/Camera/VISION_FRONT/Best Target Distance",
+              "period": 0.06,
+              "data_type": "double"
             }
           }
         ]
       }
     },
     {
-      "name": "Autonomous",
+      "name": "Testing / Tuning",
       "grid_layout": {
-        "layouts": [],
+        "layouts": [
+          {
+            "title": "Climber",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 325.0,
+            "height": 600.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "At Upper Limit",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Boolean Box",
+                "properties": {
+                  "topic": "/SmartDashboard/Climber/At Upper Limit",
+                  "period": 0.06,
+                  "data_type": "boolean",
+                  "true_color": 4283215696,
+                  "false_color": 4289506476,
+                  "true_icon": "None",
+                  "false_icon": "None"
+                }
+              },
+              {
+                "title": "At Lower Limit",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Boolean Box",
+                "properties": {
+                  "topic": "/SmartDashboard/Climber/At Lower Limit",
+                  "period": 0.06,
+                  "data_type": "boolean",
+                  "true_color": 4283215696,
+                  "false_color": 4289506476,
+                  "true_icon": "None",
+                  "false_icon": "None"
+                }
+              },
+              {
+                "title": "Position (rotations)",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/Climber/Position (rotations)",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "Current (A)",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/Climber/Current (A)",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "Temperature (C)",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/Climber/Temperature (C)",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "Stalled",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Boolean Box",
+                "properties": {
+                  "topic": "/SmartDashboard/Climber/Stalled",
+                  "period": 0.06,
+                  "data_type": "boolean",
+                  "true_color": 4283215696,
+                  "false_color": 4289506476,
+                  "true_icon": "None",
+                  "false_icon": "None"
+                }
+              }
+            ]
+          }
+        ],
         "containers": [
           {
             "title": "Tune Distance (meters)",
@@ -207,28 +318,26 @@
             "title": "Current Distance",
             "x": 1025.0,
             "y": 0.0,
-            "width": 175.0,
+            "width": 300.0,
             "height": 150.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/LauncherTuning/CurrentDistance",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {
             "title": "Current Target RPM",
             "x": 1025.0,
             "y": 150.0,
-            "width": 175.0,
+            "width": 300.0,
             "height": 150.0,
-            "type": "Text Display",
+            "type": "Large Text Display",
             "properties": {
               "topic": "/LauncherTuning/CurrentTargetRPM",
               "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
+              "data_type": "double"
             }
           },
           {

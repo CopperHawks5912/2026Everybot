@@ -17,6 +17,7 @@ public final class ClimberConstants {
   // Set these based on your climber's physical range of motion
   public static final double kUpperLimitRotations = 100.0;  // Maximum extension
   public static final double kLowerLimitRotations = 0.0;    // Fully retracted (home position)
+  public static final double kHomePosition        = 25.0;   // Home position
   
   // Stall detection thresholds
   public static final double kStallCurrentThreshold  = 35.0;   // Amps - indicates motor is working hard

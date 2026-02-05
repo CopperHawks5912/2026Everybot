@@ -143,6 +143,14 @@ public class ClimberSubsystem extends SubsystemBase {
   }
   
   /**
+   * Check if climber is at home position
+   * @return true if within tolerance of home position
+   */
+  public boolean isAtHomePosition() {
+    return Math.abs(getPosition() - ClimberConstants.kHomePosition) <= 0.1;
+  }
+  
+  /**
    * Check if climber is stalled (high current, low velocity)
    * Useful for detecting when climber hits a hard stop
    * @return true if motor appears stalled
@@ -192,6 +200,23 @@ public class ClimberSubsystem extends SubsystemBase {
       .until(this::isAtLowerLimit)
       .andThen(stopCommand())
       .withName("RetractToLimit");
+  }
+  
+  /**
+   * Command the climber to move to the upright home position
+   * @return Command that retracts to lower limit then stops
+   */
+  public Command homeCommand() {
+    return run(() -> {
+      if (getPosition() > ClimberConstants.kHomePosition) {
+        setPower(ClimberConstants.kDownPercent);
+      } else {
+        setPower(ClimberConstants.kUpPercent);
+      }
+    })
+    .until(this::isAtHomePosition)
+    .andThen(stopCommand())
+    .withName("HomeClimber");
   }
   
   /**
