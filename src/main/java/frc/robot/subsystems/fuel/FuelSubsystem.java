@@ -95,6 +95,26 @@ public class FuelSubsystem extends SubsystemBase {
   }
   
   /**
+   * Load default launcher RPM map
+   * These are starting values - tune them using Shuffleboard
+   */
+  private void loadDefaultLauncherMap() {
+    // Clear existing map
+    launcherRPM.clear();
+    
+    // Load from constants or use defaults
+    launcherRPM.put(0.0, 1000.0);   // Close range
+    launcherRPM.put(2.0, 2000.0);   // 2 meters
+    launcherRPM.put(3.0, 2500.0);   // 3 meters
+    launcherRPM.put(4.0, 3000.0);   // 4 meters
+    launcherRPM.put(5.0, 3500.0);   // Mid range
+    launcherRPM.put(6.0, 4000.0);   // 6 meters
+    launcherRPM.put(7.0, 4500.0);   // 7 meters
+    launcherRPM.put(8.0, 5000.0);   // 8 meters
+    launcherRPM.put(10.0, 5500.0);  // Far range
+  }
+  
+  /**
    * Setup NetworkTables for tuning the launcher
    * Compatible with both Shuffleboard and Elastic Dashboard
    */
@@ -134,26 +154,6 @@ public class FuelSubsystem extends SubsystemBase {
     Utils.logInfo("Launcher tuning NetworkTables initialized");
   }
 
-  /**
-   * Load default launcher RPM map
-   * These are starting values - tune them using Shuffleboard
-   */
-  private void loadDefaultLauncherMap() {
-    // Clear existing map
-    launcherRPM.clear();
-    
-    // Load from constants or use defaults
-    launcherRPM.put(0.0, 1000.0);   // Close range
-    launcherRPM.put(2.0, 2000.0);   // 2 meters
-    launcherRPM.put(3.0, 2500.0);   // 3 meters
-    launcherRPM.put(4.0, 3000.0);   // 4 meters
-    launcherRPM.put(5.0, 3500.0);   // Mid range
-    launcherRPM.put(6.0, 4000.0);   // 6 meters
-    launcherRPM.put(7.0, 4500.0);   // 7 meters
-    launcherRPM.put(8.0, 5000.0);   // 8 meters
-    launcherRPM.put(10.0, 5500.0);  // Far range
-  }
-  
   /**
    * Configure the feeder motor with all settings
    */
