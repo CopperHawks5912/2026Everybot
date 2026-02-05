@@ -16,7 +16,7 @@ public final class ClimberConstants {
   // Soft limits (in encoder rotations)
   // Set these based on your climber's physical range of motion
   public static final double kUpperLimitRotations = 100.0;  // Maximum extension
-  public static final double kLowerLimitRotations = 0.0;    // Fully retracted (home position)
+  public static final double kLowerLimitRotations = 0.0;    // Fully retracted
   public static final double kHomeRotations       = 25.0;   // Home position
   
   // Stall detection thresholds
