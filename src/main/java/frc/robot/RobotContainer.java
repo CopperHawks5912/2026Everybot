@@ -156,11 +156,14 @@ public class RobotContainer {
       Commands.runOnce(driveSubsystem::resetOdometryCommand).ignoringDisable(true)
     ));
 
+    // climb up while holding Y button
+    driverXbox.y().whileTrue(climberSubsystem.upCommand());
+
     // climb down while holding B button
     driverXbox.b().whileTrue(climberSubsystem.downCommand());
 
-    // climb up while holding Y button
-    driverXbox.y().whileTrue(climberSubsystem.upCommand());
+    // move the climber to the home position
+    driverXbox.a().onTrue(climberSubsystem.homeCommand());
 
     // intake fuel from the ground while holding left trigger
     driverXbox.leftTrigger().whileTrue(fuelSubsystem.intakeCommand());
@@ -182,10 +185,7 @@ public class RobotContainer {
     );
 
     // eject fuel through the intake while holding the A button
-    driverXbox.a().whileTrue(fuelSubsystem.ejectCommand());
-
-    // move the climber to the home position
-    driverXbox.x().onTrue(climberSubsystem.homeCommand());
+    driverXbox.x().whileTrue(fuelSubsystem.ejectCommand());
 
     // not used
     driverXbox.back().onTrue(Commands.none());
