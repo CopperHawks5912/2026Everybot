@@ -461,14 +461,13 @@ public class FuelSubsystem extends SubsystemBase {
    */
   public Command launchCommand(DoubleSupplier distanceToHub) {
     return run(() -> {
-      // Calculate target RPM based on distance
+      // get the distance value
       double distance = distanceToHub.getAsDouble();
-      double rpm;
-      if (distance >= 0 && distance <= 8.27) {
-        rpm = launcherRPM.get(distance);
-      } else {
-        rpm = FuelConstants.kLauncherLaunchingRPM;
-      }
+
+      // Calculate target RPM based on distance
+      double rpm = (distance >= 0 && distance <= 8.27) 
+        ? launcherRPM.get(distance) 
+        : FuelConstants.kLauncherLaunchingRPM;
       
       // Spin up the launcher
       setLauncherVelocity(rpm);
