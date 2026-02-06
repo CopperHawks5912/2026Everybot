@@ -152,9 +152,7 @@ public class RobotContainer {
    */
   private void configureBindings() {   
     // manually reset odometry
-    driverXbox.start().onTrue((
-      Commands.runOnce(driveSubsystem::resetOdometryCommand).ignoringDisable(true)
-    ));
+    driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand().ignoringDisable(true));
 
     // climb up while holding Y button
     driverXbox.y().whileTrue(climberSubsystem.upCommand());
@@ -173,7 +171,7 @@ public class RobotContainer {
     driverXbox.leftBumper().whileTrue(fuelSubsystem.passCommand());
 
     // Auto-aim at hub when pressing right trigger
-    driverXbox.rightTrigger().onTrue(
+    driverXbox.rightTrigger().whileTrue(
       driveSubsystem.aimAtHubCommand()
         .andThen(feedbackSubsystem.aimedAtHubCommand())
     );
@@ -187,8 +185,8 @@ public class RobotContainer {
     // eject fuel through the intake while holding the A button
     driverXbox.x().whileTrue(fuelSubsystem.ejectCommand());
 
-    // not used
-    driverXbox.back().onTrue(Commands.none());
+    // show team colors
+    driverXbox.back().onTrue(feedbackSubsystem.teamColorsCommand());
   }
 
   /**
