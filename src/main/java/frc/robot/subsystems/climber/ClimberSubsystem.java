@@ -78,18 +78,20 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   private void setPower(double power) {
     double clampedPower = MathUtil.clamp(power, -1, 1);
-    
+
     // Safety: Stop at limits to prevent damage
-    if (isAtUpperLimit() && clampedPower > 0) {
+    // Use > instead of >= to create a "close to limit" zone
+    if (getPosition() > ClimberConstants.kUpperLimitRotations && clampedPower > 0) {
       climberMotor.set(0);
       return;
     }
     
-    if (isAtLowerLimit() && clampedPower < 0) {
+    if (getPosition() < ClimberConstants.kLowerLimitRotations && clampedPower < 0) {
       climberMotor.set(0);
       return;
     }
     
+    // If within limits, set the motor power
     climberMotor.set(clampedPower);
   }
   
@@ -131,7 +133,11 @@ public class ClimberSubsystem extends SubsystemBase {
    * @return true if at or past upper limit
    */
   public boolean isAtUpperLimit() {
-    return getPosition() >= ClimberConstants.kUpperLimitRotations;
+    return MathUtil.isNear(
+      ClimberConstants.kUpperLimitRotations,
+      getPosition(),
+      ClimberConstants.kPositionTolerance
+    );
   }
   
   /**
@@ -139,7 +145,11 @@ public class ClimberSubsystem extends SubsystemBase {
    * @return true if at or past lower limit
    */
   public boolean isAtLowerLimit() {
-    return getPosition() <= ClimberConstants.kLowerLimitRotations;
+    return MathUtil.isNear(
+      ClimberConstants.kLowerLimitRotations,
+      getPosition(),
+      ClimberConstants.kPositionTolerance
+    );
   }
   
   /**
@@ -147,7 +157,11 @@ public class ClimberSubsystem extends SubsystemBase {
    * @return true if within tolerance of home position
    */
   public boolean isAtHomePosition() {
-    return Math.abs(getPosition() - ClimberConstants.kHomeRotations) <= 0.1;
+    return MathUtil.isNear(
+      ClimberConstants.kHomeRotations,
+      getPosition(),
+      ClimberConstants.kPositionTolerance
+    );
   }
   
   /**

@@ -18,6 +18,7 @@ public final class ClimberConstants {
   public static final double kUpperLimitRotations = 100.0;  // Maximum extension
   public static final double kLowerLimitRotations = 0.0;    // Fully retracted
   public static final double kHomeRotations       = 25.0;   // Home position
+  public static final double kPositionTolerance   = 0.1;    // Tolerance for position control (in rotations)
   
   // Stall detection thresholds
   public static final double kStallCurrentThreshold  = 35.0;   // Amps - indicates motor is working hard
