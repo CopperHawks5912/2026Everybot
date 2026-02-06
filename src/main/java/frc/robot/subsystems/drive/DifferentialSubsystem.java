@@ -193,14 +193,6 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Create a shared motor configuration instance
     SparkMaxConfig motorConfig = new SparkMaxConfig();
 
-    // Set CAN timeout. Because this project only sets parameters once on
-    // construction, the timeout can be long without blocking robot operation. Code
-    // which sets or gets parameters during operation may need a shorter timeout.
-    leftLeaderMotor.setCANTimeout(250);
-    leftFollowerMotor.setCANTimeout(250);
-    rightLeaderMotor.setCANTimeout(250);
-    rightFollowerMotor.setCANTimeout(250);
-
     // Create the configuration to apply to motors. Voltage compensation
     // helps the robot perform more similarly on different battery 
     // voltages (at the cost of a little bit of top speed on a fully charged
@@ -215,6 +207,19 @@ public class DifferentialSubsystem extends SubsystemBase {
     motorConfig.encoder
       .positionConversionFactor(DifferentialConstants.kPositionConversionFactor)
       .velocityConversionFactor(DifferentialConstants.kVelocityConversionFactor);
+
+    // Optimize CAN status frames for reduced lag for followers
+    // Followers can have slower updates since they are just mirroring 
+    // the leaders, while leaders need faster updates for position and 
+    // velocity for odometry and closed-loop control
+    motorConfig.signals
+      .primaryEncoderPositionPeriodMs(100)  // Position: 100Hz (was Status2)
+      .primaryEncoderVelocityPeriodMs(500)  // Velocity: 100Hz (was Status2)
+      .appliedOutputPeriodMs(500)           // Applied output: 10Hz (was Status0)
+      .faultsPeriodMs(500)                  // Faults: 5Hz (was Status1)
+      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
+      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
+      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)  
 
     // Set configuration to follow each leader and then apply it to corresponding
     // follower. Resetting in case a new controller is swapped in and persisting 
@@ -232,6 +237,18 @@ public class DifferentialSubsystem extends SubsystemBase {
       ResetMode.kResetSafeParameters, 
       PersistMode.kPersistParameters
     );
+
+    // Optimize CAN status frames for reduced lag for leaders
+    // Leaders need faster updates for position and velocity for odometry and closed-loop control, 
+    // while followers can be slower since they are just mirroring the leaders
+    motorConfig.signals
+      .primaryEncoderPositionPeriodMs(20)   // Position: 100Hz (was Status2)
+      .primaryEncoderVelocityPeriodMs(20)   // Velocity: 100Hz (was Status2)
+      .appliedOutputPeriodMs(100)           // Applied output: 10Hz (was Status0)
+      .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
+      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
+      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
+      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)  
     
     // Remove following, then apply config to right leader
     motorConfig.disableFollowerMode();

@@ -166,6 +166,16 @@ public class FuelSubsystem extends SubsystemBase {
       .voltageCompensation(12)
       .idleMode(IdleMode.kBrake);
 
+    // Optimize CAN status frames for reduced lag
+    feederConfig.signals
+      .primaryEncoderPositionPeriodMs(40)   // Position: 100Hz (was Status2)
+      .primaryEncoderVelocityPeriodMs(100)  // Velocity: 100Hz (was Status2)
+      .appliedOutputPeriodMs(100)           // Applied output: 10Hz (was Status0)
+      .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
+      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
+      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
+      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)
+
     // apply configuration
     feederMotor.configure(
       feederConfig, 
@@ -198,6 +208,16 @@ public class FuelSubsystem extends SubsystemBase {
       .kS(FuelConstants.kLauncherKS)
       .kV(FuelConstants.kLauncherKV)
       .kA(FuelConstants.kLauncherKA);
+
+    // Optimize CAN status frames for reduced lag
+    launcherConfig.signals
+      .primaryEncoderPositionPeriodMs(40)   // Position: 100Hz (was Status2)
+      .primaryEncoderVelocityPeriodMs(100)  // Velocity: 100Hz (was Status2)
+      .appliedOutputPeriodMs(100)           // Applied output: 10Hz (was Status0)
+      .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
+      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
+      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
+      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)
 
     // configure the right motor
     rightIntakeLauncherMotor.configure(
