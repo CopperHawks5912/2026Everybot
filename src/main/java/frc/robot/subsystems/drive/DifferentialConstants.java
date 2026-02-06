@@ -40,10 +40,10 @@ public final class DifferentialConstants {
   public static final double kGearRatio = 10.71; // TODO: Check your gearbox
   
   /**
-   * NEO encoder resolution (ticks per motor revolution)
-   * NEO encoders report 42 counts per revolution by default
+   * Rev through bore encoder v2 resolution (ticks per motor revolution)
+   * Rev through bore encoder v2 encoders report 8192 counts per revolution by default
    */
-  public static final double kEncoderTicksPerRevolution = 42.0;
+  public static final double kEncoderTicksPerRevolution = 8192.0;
   
   /**
    * Position conversion factor: converts encoder ticks to meters
