@@ -186,7 +186,7 @@ public class RobotContainer {
     driverXbox.x().whileTrue(fuelSubsystem.ejectCommand());
 
     // show team colors
-    driverXbox.back().onTrue(feedbackSubsystem.teamColorsCommand());
+    driverXbox.back().onTrue(feedbackSubsystem.teamColorsCommand().ignoringDisable(true));
   }
 
   /**
