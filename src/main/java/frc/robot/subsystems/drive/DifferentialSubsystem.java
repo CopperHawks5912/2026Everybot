@@ -26,6 +26,7 @@ import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -35,6 +36,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -71,7 +73,7 @@ public class DifferentialSubsystem extends SubsystemBase {
   private final SimpleMotorFeedforward feedForward;
 
   // PID controller for aiming
-  private final PIDController aimPIDController;
+  private final ProfiledPIDController aimPIDController;
 
   // Slew rate limiters to make joystick inputs smoother
   private final SlewRateLimiter xSpeedLimiter;
@@ -120,11 +122,17 @@ public class DifferentialSubsystem extends SubsystemBase {
     );
 
     // Initialize PID controller for aiming
-    aimPIDController = new PIDController(
-      DifferentialConstants.kAimP, 
+    aimPIDController = new ProfiledPIDController(
+      DifferentialConstants.kAimP,
       DifferentialConstants.kAimI, 
-      DifferentialConstants.kAimD
+      DifferentialConstants.kAimD,
+      new TrapezoidProfile.Constraints(
+        DifferentialConstants.kMaxSpeedMetersPerSecond,
+        DifferentialConstants.kMaxAccelMetersPerSecondSq
+      )
     );
+
+    // CRITICAL: Enable continuous input for angle wrapping
     aimPIDController.enableContinuousInput(-Math.PI, Math.PI);
     aimPIDController.setTolerance(DifferentialConstants.kAimToleranceRad);
 
@@ -618,6 +626,7 @@ public class DifferentialSubsystem extends SubsystemBase {
       driveArcade(0.0, rotationSpeed);
     })
     .until(aimPIDController::atSetpoint)
+    .withTimeout(3.0)
     .finallyDo(() -> stop())
     .withName("AimAtHubDifferential");
   }

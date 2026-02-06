@@ -142,7 +142,7 @@ public final class DifferentialConstants {
   /**
    * Aiming PID proportional gain
    */
-  public static final double kAimP = 3.5; // TODO: Tune this value
+  public static final double kAimP = 2.0; // TODO: Tune this value
   
   /**
    * Aiming PID integral gain
@@ -152,7 +152,7 @@ public final class DifferentialConstants {
   /**
    * Aiming PID derivative gain
    */
-  public static final double kAimD = 0.15; // TODO: Tune this value
+  public static final double kAimD = 0.1; // TODO: Tune this value
   
   /**
    * Aiming tolerance in radians (how close is "good enough")
