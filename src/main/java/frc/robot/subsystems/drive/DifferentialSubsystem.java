@@ -127,8 +127,8 @@ public class DifferentialSubsystem extends SubsystemBase {
       DifferentialConstants.kAimI, 
       DifferentialConstants.kAimD,
       new TrapezoidProfile.Constraints(
-        DifferentialConstants.kMaxSpeedMetersPerSecond,
-        DifferentialConstants.kMaxAccelMetersPerSecondSq
+        DifferentialConstants.kMaxAngularSpeedRadsPerSecond,
+        DifferentialConstants.kMaxAngularAccelRadsPerSecondSq
       )
     );
 
@@ -595,37 +595,39 @@ public class DifferentialSubsystem extends SubsystemBase {
   }
 
   /**
-   * Creates a command to aim the robot at the alliance's scoring hub using PID
-   * @return Command to aim at the scoring hub
-   */  
+   * Command to aim at the alliance hub using the gyro and pose estimation. 
+   * This command will rotate the robot to face the hub and then end. It 
+   * does not drive towards the hub, just aims at it. The command will 
+   * timeout after 3 seconds to prevent getting stuck.
+   * @return Command that aims the robot at the alliance hub using PID control
+   */
   public Command aimAtHubCommand() {
-    return run(() -> {
-      // Get current pose
+    return runOnce(() -> {
+      // Set goal once at start
       Pose2d currentPose = getPose();
-      
-      // Get hub position (coordinates in meters to the center of the hub)
-      // See: https://firstfrc.blob.core.windows.net/frc2026/FieldAssets/2026-field-dimension-dwgs.pdf
+
+      // Get the current alliance hub
       Translation2d hubCenter = Utils.isRedAlliance() 
         ? FieldConstants.kRedHubCenter 
         : FieldConstants.kBlueHubCenter;
       
-      // Calculate target angle
+      // Calculate the angle from the robot to the hub
       Translation2d toHub = hubCenter.minus(currentPose.getTranslation());
       Rotation2d targetAngle = new Rotation2d(toHub.getX(), toHub.getY());
       
-      // Calculate rotation speed using PID
+      // Set the target angle as the goal for the PID controller
+      aimPIDController.setGoal(targetAngle.getRadians());
+    })
+    .andThen(run(() -> {
+      // Calculate uses the previously set goal
       double rotationSpeed = aimPIDController.calculate(
-        currentPose.getRotation().getRadians(),
-        targetAngle.getRadians()
+        getPose().getRotation().getRadians()
       );
       
-      // Clamp to reasonable speed
-      rotationSpeed = MathUtil.clamp(rotationSpeed, -0.6, 0.6);
-      
-      // Drive
+      // Rotate the robot in place to aim at the hub (0 forward speed, only rotation)
       driveArcade(0.0, rotationSpeed);
-    })
-    .until(aimPIDController::atSetpoint)
+    }))
+    .until(() -> aimPIDController.atSetpoint())
     .withTimeout(3.0)
     .finallyDo(() -> stop())
     .withName("AimAtHubDifferential");
