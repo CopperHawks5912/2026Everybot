@@ -201,16 +201,16 @@ public final class DifferentialConstants {
    * This is used by PathPlanner for trajectory generation
    */
   public static final RobotConfig kRobotConfig = new RobotConfig(
-    kRobotMassKg,  // mass (kg)
-    kRobotMOI,   // MOI (kg*m²)
+    kRobotMassKg,                   // mass (kg)
+    kRobotMOI,                      // MOI (kg*m²)
     new ModuleConfig(
-      kWheelDiameterMeters / 2.0, // wheel radius (m)
-      kMaxSpeedMetersPerSecond,  // max wheel speed (m/s)
-      1.0,  // wheel COF - TODO: Tune based on your wheels/carpet
-      DCMotor.getCIM(1), // drive motors: 1 CIM per side
-      60.0, // current limit (A)
-      2     // number of motors per module
+      kWheelDiameterMeters / 2.0,   // wheel radius (m)
+      kMaxSpeedMetersPerSecond,     // max wheel speed (m/s)
+      1.19,                // wheel COF
+      DCMotor.getCIM(1),  // drive motors: 1 CIM per side
+      60.0,       // current limit (A)
+      2                   // number of motors per module
     ),
-    kTrackWidthMeters / 2.0 // module locations (just half track width for differential)
+    kTrackWidthMeters / 2.0         // module locations (just half track width for differential)
   );
 }
