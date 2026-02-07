@@ -23,6 +23,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private Timer disabledTimer;
   private boolean hasGameData;
+  private boolean hasTeleopStarted;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -81,7 +82,11 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledPeriodic() {
-    if (Timer.getMatchTime() <= 0 && disabledTimer.hasElapsed(SwerveConstants.WheelLockTime)) {
+    if (
+      Timer.getMatchTime() <= 0 && 
+      hasTeleopStarted &&
+      disabledTimer.hasElapsed(SwerveConstants.WheelLockTime
+    )) {
       m_robotContainer.setMotorBrake(false);
       disabledTimer.stop();
       disabledTimer.reset();
@@ -103,6 +108,9 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
+
+    // reset teleop flag
+    hasTeleopStarted = false;
   }
 
   /**
@@ -126,6 +134,9 @@ public class Robot extends TimedRobot {
 
     // ensure swerve module motors brake when not commanded
     m_robotContainer.setMotorBrake(true);
+
+    // flag teleop started
+    hasTeleopStarted = true;
   }
 
   /**
