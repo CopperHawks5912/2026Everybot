@@ -195,10 +195,10 @@ public class ClimberSubsystem extends SubsystemBase {
   }
   
   /**
-   * Command to extend climber up until upper limit
-   * @return Command that extends to upper limit then stops
+   * Command the climber up until upper limit
+   * @return Command that rotates to upper limit then stops
    */
-  public Command extendToLimitCommand() {
+  public Command upToLimitCommand() {
     return run(() -> setPower(ClimberConstants.kUpPercent))
       .until(this::isAtUpperLimit)
       .andThen(stopCommand())
@@ -206,10 +206,10 @@ public class ClimberSubsystem extends SubsystemBase {
   }
   
   /**
-   * Command to retract climber down until lower limit
-   * @return Command that retracts to lower limit then stops
+   * Command the climber down until lower limit
+   * @return Command that rotates to lower limit then stops
    */
-  public Command retractToLimitCommand() {
+  public Command downToLimitCommand() {
     return run(() -> setPower(ClimberConstants.kDownPercent))
       .until(this::isAtLowerLimit)
       .andThen(stopCommand())

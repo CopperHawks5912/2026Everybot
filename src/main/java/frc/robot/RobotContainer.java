@@ -78,8 +78,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("INTAKE_FUEL", fuelSubsystem.intakeCommand());
     NamedCommands.registerCommand("EJECT_FUEL", fuelSubsystem.ejectCommand());
     NamedCommands.registerCommand("AIM_AT_HUB", driveSubsystem.aimAtHubCommand());
-    NamedCommands.registerCommand("CLIMB", climberSubsystem.extendToLimitCommand());
-    NamedCommands.registerCommand("PREPARE_TO_CLIMB", climberSubsystem.retractToLimitCommand());
+    NamedCommands.registerCommand("CLIMB", climberSubsystem.upToLimitCommand());
+    NamedCommands.registerCommand("PREPARE_TO_CLIMB", climberSubsystem.downToLimitCommand());
   }
   
   /**
