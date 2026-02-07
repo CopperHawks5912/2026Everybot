@@ -503,7 +503,7 @@ public class FuelSubsystem extends SubsystemBase {
    * @return Command that launches fuel at default RPM
    */
   public Command launchCommand() {
-    return launchCommand(() -> 5.0); // Default to mid-range distance
+    return launchCommand(() -> 4.13); // Default to mid-range distance
   }
   
   // ==================== Telemetry Methods ====================
