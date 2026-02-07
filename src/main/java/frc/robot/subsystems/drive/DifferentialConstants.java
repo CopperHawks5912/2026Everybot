@@ -21,6 +21,23 @@ public final class DifferentialConstants {
    * Measure from the center of one wheel to the center of the other
    */
   public static final double kTrackWidthMeters = 0.60; // TODO: Measure your robot
+
+  /**
+   * Track length (distance between center of front wheel to back wheel) in meters
+   * Measure from the center of one wheel to the center of the other
+   */
+  public static final double kTrackLengthMeters = 0.60; // TODO: Measure your robot
+  
+  /**
+   * The robot's mass in kilograms
+   */
+  public static final double kRobotMassKg = Units.lbsToKilograms(110.0); // TODO: Measure your robot
+
+  /**
+   * Calculate the robot's moment of inertia - MOI (kg*m²)
+   * MOI = 1/12 * mass * (lengthSquared + widthSquared)
+   */
+  public static final double kRobotMOI = 1/12 * kRobotMassKg * (Math.pow(kTrackLengthMeters, 2) + Math.pow(kTrackWidthMeters, 2));
   
   /**
    * Wheel diameter in meters
@@ -185,8 +202,8 @@ public final class DifferentialConstants {
    * This is used by PathPlanner for trajectory generation
    */
   public static final RobotConfig kRobotConfig = new RobotConfig(
-    Units.lbsToKilograms(110.0),  // mass (kg) - TODO: Weigh your robot
-    6.0,   // MOI (kg*m²) - TODO: Calculate or estimate
+    kRobotMassKg,  // mass (kg)
+    kRobotMOI,   // MOI (kg*m²)
     new ModuleConfig(
       kWheelDiameterMeters / 2.0, // wheel radius (m)
       kMaxSpeedMetersPerSecond,  // max wheel speed (m/s)

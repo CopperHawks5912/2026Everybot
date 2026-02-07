@@ -12,6 +12,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.controllers.PPLTVController;
 import com.pathplanner.lib.path.PathConstraints;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -100,10 +101,10 @@ public class DifferentialSubsystem extends SubsystemBase {
     gyro = new AHRS(NavXComType.kMXP_SPI);
 
     // Initialize drive motors with correct MotorType
-    leftLeaderMotor = new SparkMax(CANConstants.kLeftDifferentialLeaderMotorID, MotorType.kBrushless);
-    leftFollowerMotor = new SparkMax(CANConstants.kLeftDifferentialFollowerMotorID, MotorType.kBrushless);
-    rightLeaderMotor = new SparkMax(CANConstants.kRightDifferentialLeaderMotorID, MotorType.kBrushless);
-    rightFollowerMotor = new SparkMax(CANConstants.kRightDifferentialFollowerMotorID, MotorType.kBrushless);
+    leftLeaderMotor = new SparkMax(CANConstants.kLeftDifferentialLeaderMotorID, MotorType.kBrushed);
+    leftFollowerMotor = new SparkMax(CANConstants.kLeftDifferentialFollowerMotorID, MotorType.kBrushed);
+    rightLeaderMotor = new SparkMax(CANConstants.kRightDifferentialLeaderMotorID, MotorType.kBrushed);
+    rightFollowerMotor = new SparkMax(CANConstants.kRightDifferentialFollowerMotorID, MotorType.kBrushed);
 
     // Configure motors (do this before creating DifferentialDrive and getting encoders)
     configureMotors();
