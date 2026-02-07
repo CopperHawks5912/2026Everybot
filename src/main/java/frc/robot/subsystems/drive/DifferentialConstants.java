@@ -20,13 +20,13 @@ public final class DifferentialConstants {
    * Track width (distance between left and right wheels) in meters
    * Measure from the center of one wheel to the center of the other
    */
-  public static final double kTrackWidthMeters = 0.60; // TODO: Measure your robot
+  public static final double kTrackWidthMeters = Units.inchesToMeters(21.625); // TODO: Measure your robot
 
   /**
    * Track length (distance between center of front wheel to back wheel) in meters
    * Measure from the center of one wheel to the center of the other
    */
-  public static final double kTrackLengthMeters = 0.60; // TODO: Measure your robot
+  public static final double kTrackLengthMeters = Units.inchesToMeters(18); // TODO: Measure your robot
   
   /**
    * The robot's mass in kilograms
@@ -66,8 +66,7 @@ public final class DifferentialConstants {
    * Position conversion factor: converts encoder ticks to meters
    * Formula: (wheel circumference) / (gear ratio * encoder ticks per rev)
    */
-  public static final double kPositionConversionFactor = 
-    kWheelCircumferenceMeters / (kGearRatio * kEncoderTicksPerRevolution);
+  public static final double kPositionConversionFactor = kWheelCircumferenceMeters / (kGearRatio * kEncoderTicksPerRevolution);
   
   /**
    * Velocity conversion factor: converts encoder ticks/minute to meters/second
