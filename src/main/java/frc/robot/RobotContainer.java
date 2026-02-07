@@ -75,8 +75,8 @@ public class RobotContainer {
   public void registerNamedCommands() {
     NamedCommands.registerCommand("LAUNCH_FUEL", fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub()));
     NamedCommands.registerCommand("PASS_FUEL", fuelSubsystem.passCommand());
-    NamedCommands.registerCommand("INTAKE_FUEL", fuelSubsystem.passCommand());
-    NamedCommands.registerCommand("EJECT_FUEL", fuelSubsystem.passCommand());
+    NamedCommands.registerCommand("INTAKE_FUEL", fuelSubsystem.intakeCommand());
+    NamedCommands.registerCommand("EJECT_FUEL", fuelSubsystem.ejectCommand());
     NamedCommands.registerCommand("AIM_AT_HUB", driveSubsystem.aimAtHubCommand());
     NamedCommands.registerCommand("CLIMB", climberSubsystem.extendToLimitCommand());
     NamedCommands.registerCommand("PREPARE_TO_CLIMB", climberSubsystem.retractToLimitCommand());
