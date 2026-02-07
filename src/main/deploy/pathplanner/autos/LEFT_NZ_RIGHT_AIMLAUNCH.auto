@@ -1,5 +1,5 @@
 {
-  "version": "2026.1.2",
+  "version": "2025.0",
   "command": {
     "type": "sequential",
     "data": {
@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "BL_Forward"
+            "pathName": "LEFT_NZ_RIGHT"
           }
         },
         {
