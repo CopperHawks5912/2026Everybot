@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -67,17 +68,18 @@ public class RobotContainer {
 
   /**
    * Register named commands to be used in PathPlanner autos.
-   * Register named commands before the creation of any PathPlanner Autos or Paths. 
+   * Do this before the creation of any PathPlanner Autos or Paths. 
    * It is recommended to do this in RobotContainer, after subsystem 
    * initialization, but before the creation of any other commands.
    */
   public void configureNamedCommands() {
-    // NamedCommands.registerCommand("ScoreLevel1Coral", new ScoreLevel1CoralCommand(
-    //   driveSubsystem,
-    //   elevatorSubsystem,
-    //   armSubsystem,
-    //   intakeSubsystem
-    // ));
+    NamedCommands.registerCommand("LAUNCH_FUEL", fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub()));
+    NamedCommands.registerCommand("PASS_FUEL", fuelSubsystem.passCommand());
+    NamedCommands.registerCommand("INTAKE_FUEL", fuelSubsystem.passCommand());
+    NamedCommands.registerCommand("EJECT_FUEL", fuelSubsystem.passCommand());
+    NamedCommands.registerCommand("AIM_AT_HUB", driveSubsystem.aimAtHubCommand());
+    NamedCommands.registerCommand("CLIMB", climberSubsystem.extendToLimitCommand());
+    NamedCommands.registerCommand("PREPARE_TO_CLIMB", climberSubsystem.retractToLimitCommand());
   }
   
   /**

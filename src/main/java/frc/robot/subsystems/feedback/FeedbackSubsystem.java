@@ -408,7 +408,7 @@ public class FeedbackSubsystem extends SubsystemBase {
    */
   public Command aimedAtHubCommand() {
     return setDisplayCommand(DisplayMode.AIMED_AT_HUB)
-      .alongWith(doubleRumbleCommand())
+      .andThen(doubleRumbleCommand())
       .andThen(Commands.waitSeconds(1.0))
       .andThen(setDisplayCommand(DisplayMode.SCORING_SHIFT))
       .withName("AimedAtHub");
