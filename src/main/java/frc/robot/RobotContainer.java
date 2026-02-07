@@ -172,8 +172,7 @@ public class RobotContainer {
 
     // Auto-aim at hub when pressing right trigger
     driverXbox.rightTrigger().whileTrue(
-      driveSubsystem.aimAtHubCommand()
-        .andThen(feedbackSubsystem.aimedAtHubCommand())
+      driveSubsystem.aimAtHubCommand().andThen(feedbackSubsystem.aimedAtHubCommand())
     );
 
     // Launch fuel while holding right bumper
