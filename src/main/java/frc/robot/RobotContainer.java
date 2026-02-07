@@ -163,6 +163,9 @@ public class RobotContainer {
     // move the climber to the home position
     driverXbox.a().onTrue(climberSubsystem.homeCommand());
 
+    // eject fuel through the intake while holding the A button
+    driverXbox.x().whileTrue(fuelSubsystem.ejectCommand());
+
     // intake fuel from the ground while holding left trigger
     driverXbox.leftTrigger().whileTrue(fuelSubsystem.intakeCommand());
 
@@ -180,9 +183,6 @@ public class RobotContainer {
     driverXbox.rightBumper().whileTrue(
       fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub())
     );
-
-    // eject fuel through the intake while holding the A button
-    driverXbox.x().whileTrue(fuelSubsystem.ejectCommand());
 
     // show team colors
     driverXbox.back().onTrue(feedbackSubsystem.teamColorsCommand().ignoringDisable(true));
