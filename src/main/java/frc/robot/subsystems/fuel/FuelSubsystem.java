@@ -106,12 +106,10 @@ public class FuelSubsystem extends SubsystemBase {
     launcherRPM.put(0.0, 1000.0);   // Close range
     launcherRPM.put(2.0, 2000.0);   // 2 meters
     launcherRPM.put(3.0, 2500.0);   // 3 meters
-    launcherRPM.put(4.0, 3000.0);   // 4 meters
-    launcherRPM.put(5.0, 3500.0);   // Mid range
+    launcherRPM.put(4.0, 3000.0);   // Mid range
+    launcherRPM.put(5.0, 3500.0);   // 5 meters
     launcherRPM.put(6.0, 4000.0);   // 6 meters
-    launcherRPM.put(7.0, 4500.0);   // 7 meters
-    launcherRPM.put(8.0, 5000.0);   // 8 meters
-    launcherRPM.put(10.0, 5500.0);  // Far range
+    launcherRPM.put(7.0, 4500.0);   // Far range (max distance for half field)
   }
   
   /**
@@ -482,7 +480,7 @@ public class FuelSubsystem extends SubsystemBase {
       double distance = distanceToHub.getAsDouble();
 
       // calculate target RPM based on distance
-      double rpm = (distance >= 0 && distance <= 8.27) 
+      double rpm = (distance >= 0 && distance <= 7.00)
         ? launcherRPM.get(distance) 
         : FuelConstants.kLauncherLaunchingRPM;
       
