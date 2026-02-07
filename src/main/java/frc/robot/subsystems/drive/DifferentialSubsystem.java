@@ -100,7 +100,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Create the gyro
     gyro = new AHRS(NavXComType.kMXP_SPI);
 
-    // Initialize drive motors with correct MotorType
+    // Initialize drive motors with correct MotorType (we're using brushed CIM motors)
     leftLeaderMotor = new SparkMax(CANConstants.kLeftDifferentialLeaderMotorID, MotorType.kBrushed);
     leftFollowerMotor = new SparkMax(CANConstants.kLeftDifferentialFollowerMotorID, MotorType.kBrushed);
     rightLeaderMotor = new SparkMax(CANConstants.kRightDifferentialLeaderMotorID, MotorType.kBrushed);
