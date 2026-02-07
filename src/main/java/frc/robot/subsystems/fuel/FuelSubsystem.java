@@ -290,12 +290,12 @@ public class FuelSubsystem extends SubsystemBase {
    * @return true if both motors are within tolerance of target RPM
    */
   private boolean isAtSpeed() {
-      if (targetRPM == 0) {
-    return false;
-  }
+    if (targetRPM == 0) {
+      return false;
+    }
   
-  return MathUtil.isNear(targetRPM, leftEncoder.getVelocity(), FuelConstants.kLauncherToleranceRPM) && 
-         MathUtil.isNear(targetRPM, rightEncoder.getVelocity(), FuelConstants.kLauncherToleranceRPM);
+    return MathUtil.isNear(targetRPM, leftEncoder.getVelocity(), FuelConstants.kLauncherToleranceRPM) && 
+           MathUtil.isNear(targetRPM, rightEncoder.getVelocity(), FuelConstants.kLauncherToleranceRPM);
   }
   
   // ==================== Tuning Commands ====================
