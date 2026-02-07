@@ -403,22 +403,19 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Convert chassis speeds to wheel speeds
     DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds);
     
-    // Get current velocities
-    double leftVelocity = leftEncoder.getVelocity();
-    double rightVelocity = rightEncoder.getVelocity();
-    
     // Calculate feedforward
     double leftFF = feedForward.calculate(wheelSpeeds.leftMetersPerSecond);
     double rightFF = feedForward.calculate(wheelSpeeds.rightMetersPerSecond);
     
     // Calculate PID correction
-    double leftPID = leftPIDController.calculate(leftVelocity, wheelSpeeds.leftMetersPerSecond);
-    double rightPID = rightPIDController.calculate(rightVelocity, wheelSpeeds.rightMetersPerSecond);
+    double leftPID = leftPIDController.calculate(leftEncoder.getVelocity(), wheelSpeeds.leftMetersPerSecond);
+    double rightPID = rightPIDController.calculate(rightEncoder.getVelocity(), wheelSpeeds.rightMetersPerSecond);
     
     // Combine and set voltages
     double leftVoltage = MathUtil.clamp(leftFF + leftPID, -12.0, 12.0);
     double rightVoltage = MathUtil.clamp(rightFF + rightPID, -12.0, 12.0);
     
+    // set the motor voltages directly for more precise control (feedforward + PID)
     leftLeaderMotor.setVoltage(leftVoltage);
     rightLeaderMotor.setVoltage(rightVoltage);
     drive.feed();
