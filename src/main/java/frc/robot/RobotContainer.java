@@ -163,7 +163,7 @@ public class RobotContainer {
     // move the climber to the home position
     driverXbox.a().onTrue(climberSubsystem.homeCommand());
 
-    // eject fuel through the intake while holding the A button
+    // eject fuel through the intake while holding the X button
     driverXbox.x().whileTrue(fuelSubsystem.ejectCommand());
 
     // intake fuel from the ground while holding left trigger
