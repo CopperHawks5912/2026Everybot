@@ -53,8 +53,8 @@ public class RobotContainer {
       () -> -1 * driverXbox.getRightX()
     ));
 
-    // configure our named commands
-    configureNamedCommands();
+    // register our named commands
+    registerNamedCommands();
 
     // configure our auto routines
     configureAutos();
@@ -72,7 +72,7 @@ public class RobotContainer {
    * It is recommended to do this in RobotContainer, after subsystem 
    * initialization, but before the creation of any other commands.
    */
-  public void configureNamedCommands() {
+  public void registerNamedCommands() {
     NamedCommands.registerCommand("LAUNCH_FUEL", fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub()));
     NamedCommands.registerCommand("PASS_FUEL", fuelSubsystem.passCommand());
     NamedCommands.registerCommand("INTAKE_FUEL", fuelSubsystem.passCommand());
