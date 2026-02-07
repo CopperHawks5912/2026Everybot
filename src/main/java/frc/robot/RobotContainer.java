@@ -5,10 +5,8 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,16 +16,10 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.subsystems.climber.ClimberSubsystem;
-import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.feedback.FeedbackSubsystem;
-import frc.robot.subsystems.fuel.FuelConstants;
 import frc.robot.subsystems.fuel.FuelSubsystem;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.subsystems.drive.DifferentialSubsystem;
-import frc.robot.subsystems.drive.SwerveConstants;
-import swervelib.SwerveInputStream;
-
-import java.io.File;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -44,38 +36,16 @@ public class RobotContainer {
   private final FuelSubsystem fuelSubsystem = new FuelSubsystem();
   private final VisionSubsystem visionSubsystem = new VisionSubsystem();
   private final DifferentialSubsystem driveSubsystem = new DifferentialSubsystem(visionSubsystem);
-  // private final SwerveSubsystem driveSubsystem = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/5912_2026"));
 
   // Auto choosers
   private SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
   private SendableChooser<Command> delayCommandChooser = new SendableChooser<>();
-
-  // ------------------------------------------------------------------------
-  // SWERVE DRIVE CODE
-  // ------------------------------------------------------------------------
-  /**
-   * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
-   */
-  // SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
-  //     driveSubsystem.getSwerveDrive(),
-  //     () -> driverXbox.getLeftY() * -1,
-  //     () -> driverXbox.getLeftX() * -1
-  //   )
-  //   .withControllerRotationAxis(() -> driverXbox.getRightX() * -1)
-  //   .deadband(SwerveConstants.Deadband)
-  //   .scaleTranslation(SwerveConstants.DefaultScaleTranslation)
-  //   .allianceRelativeControl(true);  
-
-  // Command driveFieldOrientedAnglularVelocity = driveSubsystem.driveFieldOriented(driveAngularVelocity);
 
   /** 
    * The container for the robot. 
    * Contains subsystems, IO devices, and commands. 
    */
   public RobotContainer() {
-    // set our default driving method (field relative - swerve drive)
-    // driveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-
     // set our default driving method (arcade - differential drive)
     driveSubsystem.setDefaultCommand(driveSubsystem.driveArcadeCommand(
       () -> -1 * driverXbox.getLeftY(),

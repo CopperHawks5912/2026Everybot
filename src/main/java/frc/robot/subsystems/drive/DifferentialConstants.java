@@ -37,7 +37,7 @@ public final class DifferentialConstants {
    * If motor spins X times, wheel spins 1 time
    * Example: 10.71:1 gearbox means motor spins 10.71 times per wheel rotation
    */
-  public static final double kGearRatio = 10.71; // TODO: Check your gearbox
+  public static final double kGearRatio = 8.45; // TODO: Check your gearbox
   
   /**
    * Rev through bore encoder v2 resolution (ticks per motor revolution)
