@@ -154,6 +154,9 @@ public class RobotContainer {
     // manually reset odometry
     driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand().ignoringDisable(true));
 
+    // show team colors
+    driverXbox.back().onTrue(feedbackSubsystem.teamColorsCommand().ignoringDisable(true));
+
     // climb up while holding Y button
     driverXbox.y().whileTrue(climberSubsystem.upCommand());
 
@@ -183,9 +186,6 @@ public class RobotContainer {
     driverXbox.rightBumper().whileTrue(
       fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub())
     );
-
-    // show team colors
-    driverXbox.back().onTrue(feedbackSubsystem.teamColorsCommand().ignoringDisable(true));
   }
 
   /**
