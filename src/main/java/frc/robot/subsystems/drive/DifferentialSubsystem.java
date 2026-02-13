@@ -224,9 +224,7 @@ public class DifferentialSubsystem extends SubsystemBase {
       .primaryEncoderVelocityPeriodMs(500)  // Velocity: 100Hz (was Status2)
       .appliedOutputPeriodMs(500)           // Applied output: 10Hz (was Status0)
       .faultsPeriodMs(500)                  // Faults: 5Hz (was Status1)
-      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
-      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
-      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)  
+      .analogVoltagePeriodMs(500);          // Analog: unused (was Status3)
 
     // Set configuration to follow each leader and then apply it to corresponding
     // follower. Resetting in case a new controller is swapped in and persisting 
@@ -255,9 +253,7 @@ public class DifferentialSubsystem extends SubsystemBase {
       .primaryEncoderVelocityPeriodMs(500)  // Velocity: 100Hz (was Status2)
       .appliedOutputPeriodMs(100)           // Applied output: 10Hz (was Status0)
       .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
-      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
-      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
-      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)  
+      .analogVoltagePeriodMs(500);          // Analog: unused (was Status3)
     
     // Remove following, then apply config to right leader
     motorConfig.disableFollowerMode();
