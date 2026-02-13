@@ -204,10 +204,8 @@ public class DifferentialSubsystem extends SubsystemBase {
       .idleMode(IdleMode.kBrake);
 
     // Set the position and velocity conversion factors for the encoders
-    // This converts encoder ticks to meters and meters/second
-    // motorConfig.encoder
-    //   .positionConversionFactor(DifferentialConstants.kPositionConversionFactor)
-    //   .velocityConversionFactor(DifferentialConstants.kVelocityConversionFactor);
+    // This converts encoder ticks to meters and meters/second, which 
+    // allows us to work in real-world units for control and odometry
     motorConfig.alternateEncoder
       .countsPerRevolution(DifferentialConstants.kEncoderTicksPerRevolution)
       .positionConversionFactor(DifferentialConstants.kPositionConversionFactor)
