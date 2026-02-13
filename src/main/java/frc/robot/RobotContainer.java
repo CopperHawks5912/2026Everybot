@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.feedback.FeedbackSubsystem;
@@ -158,6 +159,18 @@ public class RobotContainer {
     driverXbox.rightBumper().whileTrue(
       fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub())
     );
+
+    // Override above bindings with bindings to run SysId commands
+    if (DriverStation.isTest()) {
+      driverXbox.y().whileTrue(driveSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kForward));
+      driverXbox.b().whileTrue(driveSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kReverse));
+      driverXbox.x().whileTrue(driveSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kForward));
+      driverXbox.a().whileTrue(driveSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kReverse));
+      driverXbox.leftTrigger().whileTrue(fuelSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kForward));
+      driverXbox.leftBumper().whileTrue(fuelSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kReverse));
+      driverXbox.rightTrigger().whileTrue(fuelSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kForward));
+      driverXbox.rightBumper().whileTrue(fuelSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kReverse));
+    }
   }
 
   /**

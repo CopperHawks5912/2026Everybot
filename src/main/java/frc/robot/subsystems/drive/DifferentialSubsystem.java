@@ -4,6 +4,10 @@
 
 package frc.robot.subsystems.drive;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import java.util.List;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
@@ -38,7 +42,11 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.measure.MutDistance;
+import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -47,7 +55,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CANConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.vision.VisionSubsystem;
@@ -85,6 +93,14 @@ public class DifferentialSubsystem extends SubsystemBase {
 
   // Field visualization
   private final Field2d field2d = new Field2d();
+
+  // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
+  private final MutVoltage m_appliedVoltage = Volts.mutable(0);
+  private final MutDistance m_distance = Meters.mutable(0);
+  private final MutLinearVelocity m_velocity = MetersPerSecond.mutable(0);
+
+  // Create a new SysId routine for characterizing the drive.
+  private final SysIdRoutine m_sysIdRoutine;
 
   /**
    * Creates a new DifferentialSubsystem.
@@ -178,6 +194,38 @@ public class DifferentialSubsystem extends SubsystemBase {
     
     // Initialize field visualization
     field2d.setRobotPose(getPose());
+
+    // Initialize SysId routine for drive characterization
+    m_sysIdRoutine = new SysIdRoutine(
+      // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+      new SysIdRoutine.Config(),
+      new SysIdRoutine.Mechanism(
+        // Tell SysId how to plumb the driving voltage to the motors.
+        voltage -> {
+          leftLeaderMotor.setVoltage(voltage);
+          rightLeaderMotor.setVoltage(voltage);
+        },
+        // Tell SysId how to record a frame of data for each motor on the mechanism being
+        // characterized.
+        log -> {
+          // Record a frame for the left motors.  Since these share an encoder, we consider
+          // the entire group to be one motor.
+          log.motor("drive-left")
+            .voltage(m_appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .linearPosition(m_distance.mut_replace(leftEncoder.getPosition(), Meters))
+            .linearVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
+          // Record a frame for the right motors. Since these share an encoder, we consider
+          // the entire group to be one motor.
+          log.motor("drive-right")
+            .voltage(m_appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .linearPosition(m_distance.mut_replace(rightEncoder.getPosition(), Meters))
+            .linearVelocity(m_velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
+        },
+        // Tell SysId to make generated commands require this subsystem, suffix test state in
+        // WPILog with this subsystem's name ("drive")
+        this
+      )
+    );
 
     // Initialize dashboard
     SmartDashboard.putData("Drive/Field", field2d);
@@ -704,7 +752,23 @@ public class DifferentialSubsystem extends SubsystemBase {
       driveArcade(xSpeed, rSpeed);
     }).withName("DriveArcadeDifferential");
   }
-  
+
+  /**
+   * Returns a command that will execute a quasistatic test in the given direction.
+   * @param direction The direction (forward or reverse) to run the test in
+   */
+  public Command sysIdQuasistaticCommand(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  /**
+   * Returns a command that will execute a dynamic test in the given direction.
+   * @param direction The direction (forward or reverse) to run the test in
+   */
+  public Command sysIdDynamicCommand(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
+  }
+
   // ==================== Telemetry Methods ====================
 
   /**

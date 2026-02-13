@@ -4,6 +4,12 @@
 
 package frc.robot.subsystems.fuel;
 
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import java.util.function.DoubleSupplier;
 
 import com.revrobotics.PersistMode;
@@ -21,11 +27,15 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CANConstants;
 import frc.robot.util.Utils;
 
@@ -46,6 +56,12 @@ public class FuelSubsystem extends SubsystemBase {
   
   // Lookup tables
   private final InterpolatingDoubleTreeMap launcherRPM;
+  private final MutVoltage m_appliedVoltage = Volts.mutable(0);
+  private final MutAngle m_angle = Radians.mutable(0);
+  private final MutAngularVelocity m_velocity = RadiansPerSecond.mutable(0);
+
+  // Create a new SysId routine for characterizing the shooter.
+  private final SysIdRoutine m_sysIdRoutine;
   
   // NetworkTables for tuning (works with Elastic Dashboard)
   private NetworkTable tuningTable;
@@ -75,6 +91,36 @@ public class FuelSubsystem extends SubsystemBase {
     // Initialize encoders
     leftEncoder = leftIntakeLauncherMotor.getEncoder();
     rightEncoder = rightIntakeLauncherMotor.getEncoder();
+
+    // Initialize SysId routine for shooter characterization
+    m_sysIdRoutine = new SysIdRoutine(
+      // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+      new SysIdRoutine.Config(),
+      new SysIdRoutine.Mechanism(
+        // Tell SysId how to plumb the driving voltage to the motor(s).
+        voltage -> {
+          leftIntakeLauncherMotor.setVoltage(voltage);
+          rightIntakeLauncherMotor.setVoltage(voltage);
+        },
+        // Tell SysId how to record a frame of data for each motor on the mechanism being
+        // characterized.
+        log -> {
+          // Record a frame for the left launcher motor.
+          log.motor("launcher-left")
+            .voltage(m_appliedVoltage.mut_replace(leftIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .angularPosition(m_angle.mut_replace(leftEncoder.getPosition(), Rotations))
+            .angularVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), RotationsPerSecond));
+          // Record a frame for the right launcher motor.
+          log.motor("launcher-right")
+            .voltage(m_appliedVoltage.mut_replace(rightIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .angularPosition(m_angle.mut_replace(rightEncoder.getPosition(), Rotations))
+            .angularVelocity(m_velocity.mut_replace(rightEncoder.getVelocity(), RotationsPerSecond));
+        },
+        // Tell SysId to make generated commands require this subsystem, suffix test state in
+        // WPILog with this subsystem's name ("launcher")
+        this
+      )
+    );
     
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
@@ -279,8 +325,7 @@ public class FuelSubsystem extends SubsystemBase {
    * @param power Percentage of voltage to apply (-1.0 to 1.0)
    */
   private void setFeederRoller(double power) {
-    double clampedPower = MathUtil.clamp(power, -1, 1);
-    feederMotor.set(clampedPower);
+    feederMotor.set(MathUtil.clamp(power, -1, 1));
   }
   
   /**
@@ -502,6 +547,22 @@ public class FuelSubsystem extends SubsystemBase {
    */
   public Command launchCommand() {
     return launchCommand(() -> 4.13); // Default to mid-range distance
+  }
+
+  /**
+   * Returns a command that will execute a quasistatic test in the given direction.
+   * @param direction The direction (forward or reverse) to run the test in
+   */
+  public Command sysIdQuasistaticCommand(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  /**
+   * Returns a command that will execute a dynamic test in the given direction.
+   * @param direction The direction (forward or reverse) to run the test in
+   */
+  public Command sysIdDynamicCommand(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
   }
   
   // ==================== Telemetry Methods ====================
