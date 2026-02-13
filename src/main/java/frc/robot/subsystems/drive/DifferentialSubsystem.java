@@ -109,9 +109,9 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Configure motors (do this before creating DifferentialDrive and getting encoders)
     configureMotors();
 
-    // Get the encoders (after motor configuration)
-    leftEncoder = leftLeaderMotor.getEncoder();
-    rightEncoder = rightLeaderMotor.getEncoder();
+    // Get the alternate encoders - Rev throughbore (after motor configuration)
+    leftEncoder = leftLeaderMotor.getAlternateEncoder();
+    rightEncoder = rightLeaderMotor.getAlternateEncoder();
 
     // Initialize PID controllers for driving
     leftPIDController = new PIDController(DifferentialConstants.kP, 0, 0);
@@ -205,7 +205,11 @@ public class DifferentialSubsystem extends SubsystemBase {
 
     // Set the position and velocity conversion factors for the encoders
     // This converts encoder ticks to meters and meters/second
-    motorConfig.encoder
+    // motorConfig.encoder
+    //   .positionConversionFactor(DifferentialConstants.kPositionConversionFactor)
+    //   .velocityConversionFactor(DifferentialConstants.kVelocityConversionFactor);
+    motorConfig.alternateEncoder
+      .countsPerRevolution(DifferentialConstants.kEncoderTicksPerRevolution)
       .positionConversionFactor(DifferentialConstants.kPositionConversionFactor)
       .velocityConversionFactor(DifferentialConstants.kVelocityConversionFactor);
 
@@ -214,7 +218,9 @@ public class DifferentialSubsystem extends SubsystemBase {
     // the leaders, while leaders need faster updates for position and 
     // velocity for odometry and closed-loop control
     motorConfig.signals
-      .primaryEncoderPositionPeriodMs(100)  // Position: 100Hz (was Status2)
+      .externalOrAltEncoderPosition(500)    // Position: 100Hz (was Status2)
+      .externalOrAltEncoderVelocity(500)    // Velocity: 100Hz (was Status2)
+      .primaryEncoderPositionPeriodMs(500)  // Position: 100Hz (was Status2)
       .primaryEncoderVelocityPeriodMs(500)  // Velocity: 100Hz (was Status2)
       .appliedOutputPeriodMs(500)           // Applied output: 10Hz (was Status0)
       .faultsPeriodMs(500)                  // Faults: 5Hz (was Status1)
@@ -243,8 +249,10 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Leaders need faster updates for position and velocity for odometry and closed-loop control, 
     // while followers can be slower since they are just mirroring the leaders
     motorConfig.signals
-      .primaryEncoderPositionPeriodMs(20)   // Position: 100Hz (was Status2)
-      .primaryEncoderVelocityPeriodMs(20)   // Velocity: 100Hz (was Status2)
+      .externalOrAltEncoderPosition(20)     // Position: 100Hz (was Status2)
+      .externalOrAltEncoderVelocity(20)     // Velocity: 100Hz (was Status2)
+      .primaryEncoderPositionPeriodMs(500)  // Position: 100Hz (was Status2)
+      .primaryEncoderVelocityPeriodMs(500)  // Velocity: 100Hz (was Status2)
       .appliedOutputPeriodMs(100)           // Applied output: 10Hz (was Status0)
       .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
       .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)

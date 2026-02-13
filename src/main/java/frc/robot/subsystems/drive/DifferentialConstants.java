@@ -60,7 +60,7 @@ public final class DifferentialConstants {
    * Rev through bore encoder v2 resolution (ticks per motor revolution)
    * Rev through bore encoder v2 encoders report 8192 counts per revolution by default
    */
-  public static final double kEncoderTicksPerRevolution = 8192.0;
+  public static final int kEncoderTicksPerRevolution = 8192;
   
   /**
    * Position conversion factor: converts encoder ticks to meters

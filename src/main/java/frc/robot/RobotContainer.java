@@ -81,7 +81,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("CLIMB", climberSubsystem.upToLimitCommand());
     NamedCommands.registerCommand("PREPARE_TO_CLIMB", climberSubsystem.downToLimitCommand());
   }
-  
+
   /**
    * Register named commands and configure the autonomous command chooser.
    * This will build the auto chooser using the AutoBuilder class, 
