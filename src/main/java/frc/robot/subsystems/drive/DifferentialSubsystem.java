@@ -208,14 +208,12 @@ public class DifferentialSubsystem extends SubsystemBase {
         // Tell SysId how to record a frame of data for each motor on the mechanism being
         // characterized.
         log -> {
-          // Record a frame for the left motors.  Since these share an encoder, we consider
-          // the entire group to be one motor.
+          // Record a frame for the left motors.
           log.motor("drive-left")
             .voltage(m_appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
             .linearPosition(m_distance.mut_replace(leftEncoder.getPosition(), Meters))
             .linearVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
-          // Record a frame for the right motors. Since these share an encoder, we consider
-          // the entire group to be one motor.
+          // Record a frame for the right motors.
           log.motor("drive-right")
             .voltage(m_appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
             .linearPosition(m_distance.mut_replace(rightEncoder.getPosition(), Meters))
