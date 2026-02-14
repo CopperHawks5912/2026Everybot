@@ -94,30 +94,22 @@ public class FuelSubsystem extends SubsystemBase {
 
     // Initialize SysId routine for shooter characterization
     m_sysIdRoutine = new SysIdRoutine(
-      // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
-        // Tell SysId how to plumb the driving voltage to the motor(s).
         voltage -> {
           leftIntakeLauncherMotor.setVoltage(voltage);
           rightIntakeLauncherMotor.setVoltage(voltage);
         },
-        // Tell SysId how to record a frame of data for each motor on the mechanism being
-        // characterized.
         log -> {
-          // Record a frame for the left launcher motor.
           log.motor("launcher-left")
             .voltage(m_appliedVoltage.mut_replace(leftIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
             .angularPosition(m_angle.mut_replace(leftEncoder.getPosition(), Rotations))
             .angularVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), RotationsPerSecond));
-          // Record a frame for the right launcher motor.
           log.motor("launcher-right")
             .voltage(m_appliedVoltage.mut_replace(rightIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
             .angularPosition(m_angle.mut_replace(rightEncoder.getPosition(), Rotations))
             .angularVelocity(m_velocity.mut_replace(rightEncoder.getVelocity(), RotationsPerSecond));
         },
-        // Tell SysId to make generated commands require this subsystem, suffix test state in
-        // WPILog with this subsystem's name ("launcher")
         this
       )
     );

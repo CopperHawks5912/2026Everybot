@@ -197,30 +197,22 @@ public class DifferentialSubsystem extends SubsystemBase {
 
     // Initialize SysId routine for drive characterization
     m_sysIdRoutine = new SysIdRoutine(
-      // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
-        // Tell SysId how to plumb the driving voltage to the motors.
         voltage -> {
           leftLeaderMotor.setVoltage(voltage);
           rightLeaderMotor.setVoltage(voltage);
         },
-        // Tell SysId how to record a frame of data for each motor on the mechanism being
-        // characterized.
         log -> {
-          // Record a frame for the left motors.
           log.motor("drive-left")
             .voltage(m_appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
             .linearPosition(m_distance.mut_replace(leftEncoder.getPosition(), Meters))
             .linearVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
-          // Record a frame for the right motors.
           log.motor("drive-right")
             .voltage(m_appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
             .linearPosition(m_distance.mut_replace(rightEncoder.getPosition(), Meters))
             .linearVelocity(m_velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
         },
-        // Tell SysId to make generated commands require this subsystem, suffix test state in
-        // WPILog with this subsystem's name ("drive")
         this
       )
     );
