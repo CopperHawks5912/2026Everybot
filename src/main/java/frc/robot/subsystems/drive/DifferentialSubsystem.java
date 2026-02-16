@@ -636,7 +636,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    */
   public Command initAutonomousCommand() {
     return runOnce(() -> {
-      resetEncoders();
+      resetOdometry();
       setMotorBrake(true);
       inverted = false;
     });
@@ -823,12 +823,33 @@ public class DifferentialSubsystem extends SubsystemBase {
   // ==================== Telemetry Methods ====================
 
   /**
+   * Updates the SmartDashboard with the robot's readiness for autonomous mode.
+   * This should be called perioddically prior to autonomous mode while the robot is disabled.
+   * @param expectedStart The expected starting pose for the selected autonomous mode
+   */
+  public void updateAutoReadiness(Pose2d expectedStart) {
+    Pose2d currentPose = getPose();
+
+    double xError = expectedStart.getX() - currentPose.getX();
+    double yError = expectedStart.getY() - currentPose.getY();
+    double angleError = expectedStart.getRotation().minus(currentPose.getRotation()).getDegrees();
+
+    boolean inPosition = Math.abs(xError) < 0.1 &&
+                         Math.abs(yError) < 0.1 &&
+                         Math.abs(angleError) < 2.0;
+
+    SmartDashboard.putNumber("Auto/XError (m)", Utils.showDouble(xError));
+    SmartDashboard.putNumber("Auto/YError (m)", Utils.showDouble(yError));
+    SmartDashboard.putNumber("Auto/AngleError (deg)", Utils.showDouble(angleError));
+    SmartDashboard.putBoolean("Auto/RobotInPosition", inPosition);
+  }
+
+  /**
    * Initialize Sendable for SmartDashboard
    */
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.setSmartDashboardType("DifferentialSubsystem");
-    builder.addStringProperty("Pose", () -> getPose().toString(), null);
     builder.addDoubleProperty("Left Position (m)", () -> Utils.showDouble(leftEncoder.getPosition()), null);
     builder.addDoubleProperty("Right Position (m)", () -> Utils.showDouble(rightEncoder.getPosition()), null);
     builder.addDoubleProperty("Left Velocity (m/s)", () -> Utils.showDouble(leftEncoder.getVelocity()), null);

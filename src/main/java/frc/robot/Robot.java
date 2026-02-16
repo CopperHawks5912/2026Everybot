@@ -77,6 +77,12 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledPeriodic() {
+    // Show the difference of the pose estimator's position from the starting pose 
+    // of the selected autonomous on the dashboard during disabled so drivers can 
+    // align the robot to it prior to the start of the match
+    if (Timer.getMatchTime() <= 0) {
+      m_robotContainer.getDriveSubsystem().updateAutoReadiness(m_robotContainer.getStartingPose());
+    }
   }
 
   /**

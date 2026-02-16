@@ -6,7 +6,9 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -174,7 +176,6 @@ public class RobotContainer {
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
@@ -182,6 +183,15 @@ public class RobotContainer {
       delayCommandChooser.getSelected(), // run the selected delay command
       autoCommandChooser.getSelected()   // then run the selected auto command
     );
+  }
+
+  /**
+   * Use this to pass the starting pose to the main {@link Robot} class.
+   * @return the starting pose of the selected autonomous command
+   */
+  public Pose2d getStartingPose() {
+    PathPlannerAuto auto = new PathPlannerAuto(autoCommandChooser.getSelected());
+    return auto.getStartingPose();
   }
 
   /**
