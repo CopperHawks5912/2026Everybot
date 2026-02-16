@@ -95,12 +95,15 @@ public class DifferentialSubsystem extends SubsystemBase {
   private final Field2d field2d = new Field2d();
 
   // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
-  private final MutVoltage m_appliedVoltage = Volts.mutable(0);
-  private final MutDistance m_distance = Meters.mutable(0);
-  private final MutLinearVelocity m_velocity = MetersPerSecond.mutable(0);
+  private final MutVoltage appliedVoltage = Volts.mutable(0);
+  private final MutDistance distance = Meters.mutable(0);
+  private final MutLinearVelocity velocity = MetersPerSecond.mutable(0);
 
   // Create a new SysId routine for characterizing the drive.
-  private final SysIdRoutine m_sysIdRoutine;
+  private final SysIdRoutine sysIdRoutine;
+
+  // Flag to indicate if drive controls are inverted (e.g. for climbing)
+  private boolean inverted = false;
 
   /**
    * Creates a new DifferentialSubsystem.
@@ -196,7 +199,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     field2d.setRobotPose(getPose());
 
     // Initialize SysId routine for drive characterization
-    m_sysIdRoutine = new SysIdRoutine(
+    sysIdRoutine = new SysIdRoutine(
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         voltage -> {
@@ -205,13 +208,13 @@ public class DifferentialSubsystem extends SubsystemBase {
         },
         log -> {
           log.motor("drive-left")
-            .voltage(m_appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .linearPosition(m_distance.mut_replace(leftEncoder.getPosition(), Meters))
-            .linearVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
+            .voltage(appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .linearPosition(distance.mut_replace(leftEncoder.getPosition(), Meters))
+            .linearVelocity(velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
           log.motor("drive-right")
-            .voltage(m_appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .linearPosition(m_distance.mut_replace(rightEncoder.getPosition(), Meters))
-            .linearVelocity(m_velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
+            .voltage(appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .linearPosition(distance.mut_replace(rightEncoder.getPosition(), Meters))
+            .linearVelocity(velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
         },
         this
       )
@@ -619,6 +622,14 @@ public class DifferentialSubsystem extends SubsystemBase {
             rightLeaderMotor.getAppliedOutput() * rightLeaderMotor.getBusVoltage()) / 2.0;
   }
 
+  /**
+   * Check if the drive controls are currently inverted
+   * @return True if the drive controls are inverted, false otherwise
+   */
+  public boolean isInverted() {
+    return inverted;
+  }
+
   // ==================== Command Factories ====================
   
   /**
@@ -648,6 +659,15 @@ public class DifferentialSubsystem extends SubsystemBase {
     return runOnce(this::stop)
       .withName("StopDifferential");
   }
+  
+  /**
+   * Command to toggle the drive controls inversion
+   * @return Command that toggles the drive controls inversion
+   */
+  public Command toggleInvertControlsCommand() {
+    return runOnce(() -> this.inverted = !this.inverted)
+      .withName("ToggleInvertControlsDifferential");
+  }
 
   /**
    * Command to aim at the alliance hub using the gyro and pose estimation. 
@@ -670,8 +690,9 @@ public class DifferentialSubsystem extends SubsystemBase {
       Translation2d toHub = hubCenter.minus(currentPose.getTranslation());
       Rotation2d targetAngle = new Rotation2d(toHub.getX(), toHub.getY());
       
-      // Set the target angle as the goal for the PID controller
-      aimPIDController.setGoal(targetAngle.getRadians());
+      // Set the target angle as the goal for the PID controller.
+      // Add Math.PI so that the back of the robot (the launcher) faces the hub.
+      aimPIDController.setGoal(targetAngle.getRadians() + Math.PI);
     })
     .andThen(run(() -> {
       // Calculate uses the previously set goal
@@ -737,6 +758,11 @@ public class DifferentialSubsystem extends SubsystemBase {
       xSpeed *= DifferentialConstants.kTranslationScaling;
       rSpeed *= DifferentialConstants.kRotationScaling;
 
+      // Invert controls if the inverted flag is set
+      if (inverted) {
+        xSpeed = -xSpeed;
+      }
+
       // 4. Drive the robot using the processed inputs (-1 to 1 range),
       //    arcadeDrive automatically squares inputs for finer control at low speeds
       driveArcade(xSpeed, rSpeed);
@@ -748,7 +774,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @param direction The direction (forward or reverse) to run the test in
    */
   public Command sysIdQuasistaticCommand(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
+    return sysIdRoutine.quasistatic(direction);
   }
 
   /**
@@ -756,7 +782,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @param direction The direction (forward or reverse) to run the test in
    */
   public Command sysIdDynamicCommand(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
+    return sysIdRoutine.dynamic(direction);
   }
 
   // ==================== Telemetry Methods ====================

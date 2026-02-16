@@ -56,12 +56,12 @@ public class FuelSubsystem extends SubsystemBase {
   
   // Lookup tables
   private final InterpolatingDoubleTreeMap launcherRPM;
-  private final MutVoltage m_appliedVoltage = Volts.mutable(0);
-  private final MutAngle m_angle = Radians.mutable(0);
-  private final MutAngularVelocity m_velocity = RadiansPerSecond.mutable(0);
+  private final MutVoltage appliedVoltage = Volts.mutable(0);
+  private final MutAngle angle = Radians.mutable(0);
+  private final MutAngularVelocity velocity = RadiansPerSecond.mutable(0);
 
   // Create a new SysId routine for characterizing the shooter.
-  private final SysIdRoutine m_sysIdRoutine;
+  private final SysIdRoutine sysIdRoutine;
   
   // NetworkTables for tuning (works with Elastic Dashboard)
   private NetworkTable tuningTable;
@@ -93,7 +93,7 @@ public class FuelSubsystem extends SubsystemBase {
     rightEncoder = rightIntakeLauncherMotor.getEncoder();
 
     // Initialize SysId routine for shooter characterization
-    m_sysIdRoutine = new SysIdRoutine(
+    sysIdRoutine = new SysIdRoutine(
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         voltage -> {
@@ -102,13 +102,13 @@ public class FuelSubsystem extends SubsystemBase {
         },
         log -> {
           log.motor("launcher-left")
-            .voltage(m_appliedVoltage.mut_replace(leftIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .angularPosition(m_angle.mut_replace(leftEncoder.getPosition(), Rotations))
-            .angularVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), RotationsPerSecond));
+            .voltage(appliedVoltage.mut_replace(leftIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .angularPosition(angle.mut_replace(leftEncoder.getPosition(), Rotations))
+            .angularVelocity(velocity.mut_replace(leftEncoder.getVelocity(), RotationsPerSecond));
           log.motor("launcher-right")
-            .voltage(m_appliedVoltage.mut_replace(rightIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .angularPosition(m_angle.mut_replace(rightEncoder.getPosition(), Rotations))
-            .angularVelocity(m_velocity.mut_replace(rightEncoder.getVelocity(), RotationsPerSecond));
+            .voltage(appliedVoltage.mut_replace(rightIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .angularPosition(angle.mut_replace(rightEncoder.getPosition(), Rotations))
+            .angularVelocity(velocity.mut_replace(rightEncoder.getVelocity(), RotationsPerSecond));
         },
         this
       )
@@ -546,7 +546,7 @@ public class FuelSubsystem extends SubsystemBase {
    * @param direction The direction (forward or reverse) to run the test in
    */
   public Command sysIdQuasistaticCommand(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
+    return sysIdRoutine.quasistatic(direction);
   }
 
   /**
@@ -554,7 +554,7 @@ public class FuelSubsystem extends SubsystemBase {
    * @param direction The direction (forward or reverse) to run the test in
    */
   public Command sysIdDynamicCommand(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
+    return sysIdRoutine.dynamic(direction);
   }
   
   // ==================== Telemetry Methods ====================
