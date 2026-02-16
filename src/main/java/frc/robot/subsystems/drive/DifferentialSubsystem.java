@@ -631,7 +631,40 @@ public class DifferentialSubsystem extends SubsystemBase {
   }
 
   // ==================== Command Factories ====================
-  
+    /**
+   * Command factory for binding to initAutonomous
+   */
+  public Command initAutonomousCommand() {
+    return runOnce(() -> {
+      resetEncoders();
+      setMotorBrake(true);
+      inverted = false;
+    });
+  }
+
+  /**
+   * Command factory for binding to initTeleop
+   */
+  public Command initTeleopCommand() {
+    return runOnce(() -> {
+      setMotorBrake(true);
+      inverted = false;
+    });
+  }
+
+  /**
+   * Command factory for binding to end of match
+   */
+  public Command endOfMatchCommand() {
+    return Commands.waitSeconds(5.0)
+      .andThen(runOnce(() -> {
+        setMotorBrake(false);
+        inverted = false;
+      }))
+      .ignoringDisable(true)
+      .withName("EndOfMatchDifferential");
+  }
+
   /**
    * Reset the robot's odometry
    * @return Command that resets the differential drive odometry

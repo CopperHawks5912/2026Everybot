@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -123,7 +122,7 @@ public class RobotContainer {
    * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
-  private void configureBindings() {   
+  private void configureBindings() {
     // manually reset odometry
     driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand());
 
@@ -189,19 +188,18 @@ public class RobotContainer {
   }
 
   /**
-   * Toggle the motor brake mode
-   * @param brake True to brake or false to coast
+   * Use this to pass the drive subsystem to the main {@link Robot} class, 
+   * for use in the Robot's periodic methods.
    */
-  public void setMotorBrake(boolean brake) {
-    CommandScheduler.getInstance().schedule(driveSubsystem.setMotorBrakeCommand(brake));
+  public DifferentialSubsystem getDriveSubsystem() {
+    return driveSubsystem;
   }
 
   /**
-   * Use this to schedule scoring shift feedback based
-   * on the game data passed from the DriverStation.
-   * @param gameData the game-specific message from the DriverStation
+   * Use this to pass the feedback subsystem to the main {@link Robot} class, 
+   * for use in the Robot's periodic methods.
    */
-  public void scheduleScoringShiftCommand(char inactiveAlliance) {
-    CommandScheduler.getInstance().schedule(feedbackSubsystem.scoringShiftCommand(inactiveAlliance));
+  public FeedbackSubsystem getFeedbackSubsystem() {
+    return feedbackSubsystem;
   }
 }

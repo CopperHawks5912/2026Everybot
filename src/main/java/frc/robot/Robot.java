@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
-  private Timer disabledTimer;
   private boolean hasGameData;
   private boolean hasTeleopStarted;
 
@@ -37,10 +36,6 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.
     // This will perform all our button bindings, and put our autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-
-    // Create a timer to disable motor brake a few seconds after disable.  This will let the robot stop
-    // immediately when disabled, but then also let it be pushed more 
-    disabledTimer = new Timer();
 
     // Start the camera server for streaming to the dashboard
     // CameraServer.startAutomaticCapture("DRIVE_FRONT", 0);
@@ -70,9 +65,11 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledInit() {
-    m_robotContainer.setMotorBrake(true);
-    disabledTimer.reset();
-    disabledTimer.start();
+    // If teleop has started and the match time is 0 or less, run the end of match command
+    if (hasTeleopStarted && Timer.getMatchTime() <= 0) {
+      m_robotContainer.getDriveSubsystem().endOfMatchCommand();
+      m_robotContainer.getFeedbackSubsystem().teamColorsCommand();
+    }
   }
 
   /**
@@ -80,11 +77,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledPeriodic() {
-    if (Timer.getMatchTime() <= 0 && hasTeleopStarted && disabledTimer.hasElapsed(10)) {
-      m_robotContainer.setMotorBrake(false);
-      disabledTimer.stop();
-      disabledTimer.reset();
-    }
   }
 
   /**
@@ -92,8 +84,15 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    // ensure swerve module motors brake when not commanded
-    m_robotContainer.setMotorBrake(true);
+    // reset game data and teleop started flag at the start of autonomous
+    hasGameData = false;
+    hasTeleopStarted = false;
+
+    // run the autonomous init command for the drive subsystem to reset any necessary state
+    m_robotContainer.getDriveSubsystem().initAutonomousCommand();
+
+    // both teams can score at the start of autonomous
+    m_robotContainer.getFeedbackSubsystem().scoringShiftCommand('A');
 
     // get the selected autonomous command
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
@@ -102,9 +101,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
-
-    // reset teleop flag
-    hasTeleopStarted = false;
   }
 
   /**
@@ -126,11 +122,11 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
 
-    // ensure swerve module motors brake when not commanded
-    m_robotContainer.setMotorBrake(true);
-
-    // flag teleop started
+    // Set teleop started flag
     hasTeleopStarted = true;
+
+    // Run the teleop init command for the drive subsystem to reset any necessary state
+    m_robotContainer.getDriveSubsystem().initTeleopCommand();
   }
 
   /**
@@ -146,7 +142,7 @@ public class Robot extends TimedRobot {
         char inactiveAlliance = gameData.charAt(0);
         if (inactiveAlliance == 'R' || inactiveAlliance == 'B') {
           hasGameData = true;
-          m_robotContainer.scheduleScoringShiftCommand(inactiveAlliance);
+          m_robotContainer.getFeedbackSubsystem().scoringShiftCommand(inactiveAlliance);
         }
       }
     }
