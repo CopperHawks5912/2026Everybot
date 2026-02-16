@@ -206,7 +206,7 @@ public class FeedbackSubsystem extends SubsystemBase {
    * Scoring shift pattern that indicates which alliance is allowed to score.
    * Sets all LEDs to our alliance colour when our scoring shift is activate.
    * Blinks our alliance colour for the last 5 seconds of active hub.
-   * Turns off the LEDs when it is not our turn to score.
+   * Sets LEDs to yellow (collect fuel) when it is not our turn to score.
    */
   private void scoringShiftPattern() {
     // current remaining match time
@@ -251,35 +251,35 @@ public class FeedbackSubsystem extends SubsystemBase {
       }
       else if (time <= 130 && time > 110) {
         // shift 1
-        setAllLEDs(isInactiveFirst ? Color.kBlack : allianceColor);
+        setAllLEDs(isInactiveFirst ? Color.kYellow : allianceColor);
       }
       else if (time <= 110 && time > 105) {
         // shift 1 - last 5 seconds
-        pulsePattern(isInactiveFirst ? Color.kBlack : allianceColor, 0.35);
+        pulsePattern(isInactiveFirst ? Color.kYellow : allianceColor, 0.35);
       }
       else if (time <= 105 && time > 85) {
         // shift 2
-        setAllLEDs(isInactiveFirst ? allianceColor : Color.kBlack);
+        setAllLEDs(isInactiveFirst ? allianceColor : Color.kYellow);
       }
       else if (time <= 85 && time > 80) {
         // shift 2 - last 5 seconds
-        pulsePattern(isInactiveFirst ? allianceColor : Color.kBlack, 0.35);
+        pulsePattern(isInactiveFirst ? allianceColor : Color.kYellow, 0.35);
       }
       else if (time <= 80 && time > 60) {
         // shift 3
-        setAllLEDs(isInactiveFirst ? Color.kBlack : allianceColor);
+        setAllLEDs(isInactiveFirst ? Color.kYellow : allianceColor);
       }
       else if (time <= 60 && time > 55) {
         // shift 3 - last 5 seconds
-        pulsePattern(isInactiveFirst ? Color.kBlack : allianceColor, 0.35);
+        pulsePattern(isInactiveFirst ? Color.kYellow : allianceColor, 0.35);
       }
       else if (time <= 55 && time > 35) {
         // shift 4
-        setAllLEDs(isInactiveFirst ? allianceColor : Color.kBlack);
+        setAllLEDs(isInactiveFirst ? allianceColor : Color.kYellow);
       }
       else if (time <= 35 && time > 30) {
         // shift 4 - last 5 seconds
-        pulsePattern(isInactiveFirst ? allianceColor : Color.kBlack, 0.35);
+        pulsePattern(isInactiveFirst ? allianceColor : Color.kYellow, 0.35);
       }
       else if (time <= 30 && time > 5) {
         // end game (both alliances can score)
