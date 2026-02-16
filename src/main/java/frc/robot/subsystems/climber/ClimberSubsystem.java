@@ -202,7 +202,7 @@ public class ClimberSubsystem extends SubsystemBase {
     return run(() -> setPower(ClimberConstants.kUpPercent))
       .until(this::isAtUpperLimit)
       .andThen(stopCommand())
-      .withName("ExtendToLimit");
+      .withName("UpToLimit");
   }
   
   /**
@@ -213,7 +213,7 @@ public class ClimberSubsystem extends SubsystemBase {
     return run(() -> setPower(ClimberConstants.kDownPercent))
       .until(this::isAtLowerLimit)
       .andThen(stopCommand())
-      .withName("RetractToLimit");
+      .withName("DownToLimit");
   }
   
   /**
