@@ -59,6 +59,16 @@ public class ClimberSubsystem extends SubsystemBase {
       .voltageCompensation(12) // Consistent behavior across battery voltage
       .idleMode(IdleMode.kBrake); // CRITICAL: Brake mode prevents falling
 
+    // Optimize CAN status frames for reduced lag
+    climbConfig.signals
+      .primaryEncoderPositionPeriodMs(500)  // Position: 100Hz (was Status2)
+      .primaryEncoderVelocityPeriodMs(500)  // Velocity: 100Hz (was Status2)
+      .appliedOutputPeriodMs(500)           // Applied output: 10Hz (was Status0)
+      .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
+      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
+      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
+      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)
+
     // apply configuration
     climberMotor.configure(
       climbConfig, 
