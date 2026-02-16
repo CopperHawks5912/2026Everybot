@@ -638,6 +638,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    */
   public Command resetOdometryCommand() {
     return runOnce(this::resetOdometry)
+      .ignoringDisable(true)
       .withName("ResetOdometryDifferential");
   }
 
@@ -648,6 +649,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    */
   public Command setMotorBrakeCommand(boolean brake) {
     return runOnce(() -> setMotorBrake(brake))
+      .ignoringDisable(true)
       .withName("SetMotorBrakeDifferential");
   }
   

@@ -125,7 +125,7 @@ public class RobotContainer {
    */
   private void configureBindings() {   
     // manually reset odometry
-    driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand().ignoringDisable(true));
+    driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand());
 
     // toggles the drive controls inversion (for climbing) when the back button is pressed
     driverXbox.back().onTrue(driveSubsystem.toggleInvertControlsCommand());
@@ -161,7 +161,7 @@ public class RobotContainer {
     );
 
     // Show Copper Hawk team colors when the D-pad down is pressed
-    driverXbox.povDown().onTrue(feedbackSubsystem.teamColorsCommand().ignoringDisable(true));
+    driverXbox.povDown().onTrue(feedbackSubsystem.teamColorsCommand());
 
     // Override above bindings with bindings to run SysId commands
     if (DriverStation.isTest()) {
