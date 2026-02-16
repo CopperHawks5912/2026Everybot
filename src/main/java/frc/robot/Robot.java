@@ -84,7 +84,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    // reset game data and teleop started flag at the start of autonomous
+    // reset game data and teleop started flag at the start of every autonomous
     hasGameData = false;
     hasTeleopStarted = false;
 
@@ -135,7 +135,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     // Poll for the game data and pass it to the feedback subsystem.
-    // Only do this once when valid game data becomes available.
+    // Stop further polling once we have valid game data.
     if (!hasGameData) {
       String gameData = DriverStation.getGameSpecificMessage();
       if (gameData.length() > 0) {
