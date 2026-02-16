@@ -265,6 +265,7 @@ public class ClimberSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Temperature (C)", this::getTemperature, null);
     builder.addBooleanProperty("At Upper Limit", this::isAtUpperLimit, null);
     builder.addBooleanProperty("At Lower Limit", this::isAtLowerLimit, null);
+    builder.addBooleanProperty("At Home Position", this::isAtHomePosition, null);
     builder.addBooleanProperty("Stalled", this::isStalled, null);
   }
 }
