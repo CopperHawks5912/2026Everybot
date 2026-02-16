@@ -159,9 +159,6 @@ public class RobotContainer {
       fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub())
     );
 
-    // Show Copper Hawk team colors when the D-pad down is pressed
-    driverXbox.povDown().onTrue(feedbackSubsystem.teamColorsCommand());
-
     // Override above bindings with bindings to run SysId commands
     if (DriverStation.isTest()) {
       driverXbox.y().whileTrue(driveSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kForward));
