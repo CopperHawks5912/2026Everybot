@@ -4,8 +4,11 @@
 
 package frc.robot;
 
+import java.util.List;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -41,8 +44,8 @@ public class RobotContainer {
   private final DifferentialSubsystem driveSubsystem = new DifferentialSubsystem(visionSubsystem);
 
   // Auto choosers
-  private SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
-  private SendableChooser<Command> delayCommandChooser = new SendableChooser<>();
+  private SendableChooser<String> autoChooser = new SendableChooser<>();
+  private SendableChooser<Command> delayChooser = new SendableChooser<>();
 
   /** 
    * The container for the robot. 
@@ -92,29 +95,33 @@ public class RobotContainer {
   private void configureAutos() {
     // Build the auto chooser and add it to the dashboard
     // This will use Commands.none() as the default option.
-    autoCommandChooser = AutoBuilder.buildAutoChooserWithOptionsModifier(
-      (stream) -> DriverStation.isTest()
-        ? stream // in test, show all autos
-        : stream.filter(auto -> !auto.getName().toLowerCase().startsWith("test")) // in comp, filter out test autos
-    );
+    autoChooser.setDefaultOption("No auto", "");
+    List<String> autoNames = AutoBuilder.getAllAutoNames();
+    for (String autoName : autoNames) {
+      // add each auto to the chooser
+      autoChooser.addOption(autoName, autoName);
+
+      // pre-load each auto to catch any errors and cache the paths
+      new PathPlannerAuto(autoName).cancel();
+    }
     
     // Add auto chooser to dashboard
-    SmartDashboard.putData("Auto Command", autoCommandChooser);
+    SmartDashboard.putData("Auto Command", autoChooser);
 
     // Configure the available auto delay options
-    delayCommandChooser.setDefaultOption("No delay", Commands.none());
-    delayCommandChooser.addOption("1.0 second", Commands.waitSeconds(1.0));
-    delayCommandChooser.addOption("1.5 seconds", Commands.waitSeconds(1.5));
-    delayCommandChooser.addOption("2.0 seconds", Commands.waitSeconds(2.0));
-    delayCommandChooser.addOption("2.5 seconds", Commands.waitSeconds(2.5));
-    delayCommandChooser.addOption("3.0 seconds", Commands.waitSeconds(3.0));
-    delayCommandChooser.addOption("3.5 seconds", Commands.waitSeconds(3.5));
-    delayCommandChooser.addOption("4.0 seconds", Commands.waitSeconds(4.0));
-    delayCommandChooser.addOption("4.5 seconds", Commands.waitSeconds(4.5));
-    delayCommandChooser.addOption("5.0 seconds", Commands.waitSeconds(5.0));
+    delayChooser.setDefaultOption("No delay", Commands.none());
+    delayChooser.addOption("1.0 second", Commands.waitSeconds(1.0));
+    delayChooser.addOption("1.5 seconds", Commands.waitSeconds(1.5));
+    delayChooser.addOption("2.0 seconds", Commands.waitSeconds(2.0));
+    delayChooser.addOption("2.5 seconds", Commands.waitSeconds(2.5));
+    delayChooser.addOption("3.0 seconds", Commands.waitSeconds(3.0));
+    delayChooser.addOption("3.5 seconds", Commands.waitSeconds(3.5));
+    delayChooser.addOption("4.0 seconds", Commands.waitSeconds(4.0));
+    delayChooser.addOption("4.5 seconds", Commands.waitSeconds(4.5));
+    delayChooser.addOption("5.0 seconds", Commands.waitSeconds(5.0));
     
     // Add delay chooser to dashboard
-    SmartDashboard.putData("Auto Delay", delayCommandChooser);
+    SmartDashboard.putData("Auto Delay", delayChooser);
   }
 
   /**
@@ -179,10 +186,18 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return Commands.sequence(
-      delayCommandChooser.getSelected(), // run the selected delay command
-      autoCommandChooser.getSelected()   // then run the selected auto command
-    );
+    // get the name of the selected auto from the chooser
+    String autoName = autoChooser.getSelected();
+
+    // if no auto is selected, return an empty command, otherwise 
+    // create a new PathPlannerAuto command with the selected auto.
+    Command autoCommand = Commands.none();
+    if (autoName != null && !autoName.isEmpty()) {
+      autoCommand = new PathPlannerAuto(autoName);
+    }
+
+    // get the selected delay command from the chooser and chain it before the auto command
+    return delayChooser.getSelected().andThen(autoCommand);
   }
 
   /**
@@ -191,7 +206,7 @@ public class RobotContainer {
    */
   public Pose2d getStartingPose() {
     try {
-      PathPlannerPath path = PathPlannerPath.fromPathFile(autoCommandChooser.getSelected().getName());
+      PathPlannerPath path = PathPlannerPath.fromPathFile(autoChooser.getSelected());
       return path.getStartingDifferentialPose();
     }
     catch (Exception e) {
