@@ -6,7 +6,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -190,8 +190,14 @@ public class RobotContainer {
    * @return the starting pose of the selected autonomous command
    */
   public Pose2d getStartingPose() {
-    PathPlannerAuto auto = new PathPlannerAuto(autoCommandChooser.getSelected());
-    return auto.getStartingPose();
+    try {
+      PathPlannerPath path = PathPlannerPath.fromPathFile(autoCommandChooser.getSelected().getName());
+      return path.getStartingDifferentialPose();
+    }
+    catch (Exception e) {
+      // if there is an error (such as no auto selected), return a default pose
+      return new Pose2d();
+    }
   }
 
   /**
