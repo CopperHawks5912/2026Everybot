@@ -9,7 +9,6 @@ import java.util.List;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -46,6 +45,9 @@ public class RobotContainer {
   // Auto choosers
   private SendableChooser<String> autoChooser = new SendableChooser<>();
   private SendableChooser<Command> delayChooser = new SendableChooser<>();
+  
+  // Cache the selected auto to avoid repeatedly loading path files while disabled
+  private PathPlannerAuto selectedAuto = null;
 
   /** 
    * The container for the robot. 
@@ -94,7 +96,6 @@ public class RobotContainer {
    */
   private void configureAutos() {
     // Build the auto chooser and add it to the dashboard
-    // This will use Commands.none() as the default option.
     autoChooser.setDefaultOption("No auto", "");
     List<String> autoNames = AutoBuilder.getAllAutoNames();
     for (String autoName : autoNames) {
@@ -186,17 +187,20 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // get the name of the selected auto from the chooser
-    String autoName = autoChooser.getSelected();
-
-    // if no auto is selected, return an empty command, otherwise 
-    // create a new PathPlannerAuto command with the selected auto.
-    Command autoCommand = Commands.none();
-    if (autoName != null && !autoName.isEmpty()) {
-      autoCommand = new PathPlannerAuto(autoName);
+    // get the selected auto from the chooser if it 
+    // wasn't already cached in getStartingPose()
+    if (selectedAuto == null) {
+      String autoName = autoChooser.getSelected();
+      if (autoName != null && !autoName.isEmpty()) {
+        selectedAuto = new PathPlannerAuto(autoName);
+      }
     }
 
-    // get the selected delay command from the chooser and chain it before the auto command
+    // get the selected auto, this was cached in getStartingPose() 
+    // to avoid repeatedly loading path files while disabled
+    Command autoCommand = selectedAuto != null ? selectedAuto : Commands.none();
+    
+    // get the selected delay command and then call the selected auto
     return delayChooser.getSelected().andThen(autoCommand);
   }
 
@@ -205,14 +209,21 @@ public class RobotContainer {
    * @return the starting pose of the selected autonomous command
    */
   public Pose2d getStartingPose() {
-    try {
-      PathPlannerPath path = PathPlannerPath.fromPathFile(autoChooser.getSelected());
-      return path.getStartingDifferentialPose();
-    }
-    catch (Exception e) {
-      // if there is an error (such as no auto selected), return a default pose
+    // get the name of the selected auto from the chooser
+    String autoName = autoChooser.getSelected();
+
+    // if no auto is selected, return a default pose at the origin
+    if (autoName == null || autoName.isEmpty()) {
       return new Pose2d();
     }
+
+    // cache the selected auto to avoid repeatedly loading path files while disabled
+    if (selectedAuto == null || !autoName.equals(selectedAuto.getName())) {
+      selectedAuto = new PathPlannerAuto(autoName);
+    }
+
+    // return the cached starting pose
+    return selectedAuto.getStartingPose();
   }
 
   /**

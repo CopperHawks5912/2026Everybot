@@ -222,6 +222,7 @@ public class DifferentialSubsystem extends SubsystemBase {
 
     // Initialize dashboard
     SmartDashboard.putData("Drive/Field", field2d);
+    SmartDashboard.putData("Drive/Gyro", gyro);
     SmartDashboard.putData("Drive/Differential", this);
     
     // Output initialization progress
@@ -828,6 +829,10 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @param expectedStart The expected starting pose for the selected autonomous mode
    */
   public void updateAutoReadiness(Pose2d expectedStart) {
+    if (expectedStart == null) {
+      return;
+    }
+
     Pose2d currentPose = getPose();
 
     double xError = expectedStart.getX() - currentPose.getX();
@@ -852,8 +857,8 @@ public class DifferentialSubsystem extends SubsystemBase {
     builder.setSmartDashboardType("DifferentialSubsystem");
     builder.addDoubleProperty("Left Position (m)", () -> Utils.showDouble(leftEncoder.getPosition()), null);
     builder.addDoubleProperty("Right Position (m)", () -> Utils.showDouble(rightEncoder.getPosition()), null);
-    builder.addDoubleProperty("Left Velocity (m/s)", () -> Utils.showDouble(leftEncoder.getVelocity()), null);
-    builder.addDoubleProperty("Right Velocity (m/s)", () -> Utils.showDouble(rightEncoder.getVelocity()), null);
+    builder.addDoubleProperty("Left Velocity (mps)", () -> Utils.showDouble(leftEncoder.getVelocity()), null);
+    builder.addDoubleProperty("Right Velocity (mps)", () -> Utils.showDouble(rightEncoder.getVelocity()), null);
     builder.addDoubleProperty("Gyro Angle (deg)", () -> Utils.showDouble(gyro.getAngle()), null);
     builder.addDoubleProperty("Dist To Hub (m)", () -> Utils.showDouble(getDistanceToAllianceHub()), null);
     builder.addDoubleProperty("Voltage (V)", () -> Utils.showDouble(getVoltage()), null);
