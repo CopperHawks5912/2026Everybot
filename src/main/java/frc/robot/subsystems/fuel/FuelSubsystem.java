@@ -54,15 +54,6 @@ public class FuelSubsystem extends SubsystemBase {
   // Shooter state
   private double targetRPM = 0;
   
-  // Lookup tables
-  private final InterpolatingDoubleTreeMap launcherRPM;
-  private final MutVoltage appliedVoltage = Volts.mutable(0);
-  private final MutAngle angle = Radians.mutable(0);
-  private final MutAngularVelocity velocity = RadiansPerSecond.mutable(0);
-
-  // Create a new SysId routine for characterizing the shooter.
-  private final SysIdRoutine sysIdRoutine;
-  
   // NetworkTables for tuning (works with Elastic Dashboard)
   private NetworkTable tuningTable;
   private NetworkTableEntry tuningDistanceEntry;
@@ -72,6 +63,15 @@ public class FuelSubsystem extends SubsystemBase {
   private NetworkTableEntry leftVelocityEntry;
   private NetworkTableEntry rightVelocityEntry;
   private NetworkTableEntry atSpeedEntry;
+  
+  // Mutable holders for unit-safe voltage values, persisted to avoid reallocation.
+  private final InterpolatingDoubleTreeMap launcherRPM;
+  private final MutVoltage appliedVoltage = Volts.mutable(0);
+  private final MutAngle angle = Radians.mutable(0);
+  private final MutAngularVelocity velocity = RadiansPerSecond.mutable(0);
+
+  // Create a new SysId routine for characterizing the shooter.
+  private final SysIdRoutine sysIdRoutine;
   
   /** Creates a new FuelSubsystem. */
   public FuelSubsystem() {

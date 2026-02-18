@@ -94,16 +94,16 @@ public class DifferentialSubsystem extends SubsystemBase {
   // Field visualization
   private final Field2d field2d = new Field2d();
 
-  // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
+  // Flag to indicate if drive controls are inverted (e.g. for climbing)
+  private boolean inverted = false;
+
+  // Mutable holders for unit-safe voltage values, persisted to avoid reallocation.
   private final MutVoltage appliedVoltage = Volts.mutable(0);
   private final MutDistance distance = Meters.mutable(0);
   private final MutLinearVelocity velocity = MetersPerSecond.mutable(0);
 
   // Create a new SysId routine for characterizing the drive.
   private final SysIdRoutine sysIdRoutine;
-
-  // Flag to indicate if drive controls are inverted (e.g. for climbing)
-  private boolean inverted = false;
 
   /**
    * Creates a new DifferentialSubsystem.
