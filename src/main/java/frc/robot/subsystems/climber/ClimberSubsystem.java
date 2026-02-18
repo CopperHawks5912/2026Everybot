@@ -59,6 +59,12 @@ public class ClimberSubsystem extends SubsystemBase {
       .voltageCompensation(12) // Consistent behavior across battery voltage
       .idleMode(IdleMode.kBrake); // CRITICAL: Brake mode prevents falling
 
+    // configure the alternate encoder
+    climbConfig.alternateEncoder
+      .countsPerRevolution(ClimberConstants.kEncoderTicksPerRevolution) 
+      .positionConversionFactor(ClimberConstants.kPositionConversionFactor)
+      .velocityConversionFactor(ClimberConstants.kVelocityConversionFactor);
+
     // Optimize CAN status frames for reduced lag
     climbConfig.signals
       .externalOrAltEncoderPosition(40)      // Fast enough for limit detection

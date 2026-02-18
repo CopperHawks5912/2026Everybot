@@ -8,7 +8,31 @@ package frc.robot.subsystems.climber;
  * Constants for the Climber subsystem
  * All values should be tuned based on your specific robot
  */
-public final class ClimberConstants {
+public final class ClimberConstants {  
+  /**
+   * Rev through bore encoder v2 resolution (ticks per motor revolution)
+   * Rev through bore encoder v2 encoders report 8192 counts per revolution by default
+   */
+  public static final int kEncoderTicksPerRevolution = 8192;
+  /**
+   * Gear ratio from motor to wheel
+   * If motor spins X times, wheel spins 1 time
+   * Example: 10.71:1 gearbox means motor spins 10.71 times per wheel rotation
+   */
+  public static final double kGearRatio = 100.0; // TODO: Check your gearbox
+
+  /**
+   * Position conversion factor: converts encoder ticks to meters
+   * Formula: (wheel circumference) / gear ratio
+   */
+  public static final double kPositionConversionFactor = 1 / kGearRatio;
+  
+  /**
+   * Velocity conversion factor: converts encoder ticks/minute to meters/second
+   * Formula: position conversion factor / 60 (to convert minutes to seconds)
+   */
+  public static final double kVelocityConversionFactor = kPositionConversionFactor / 60.0;
+
   // Motor power percentages
   public static final double kUpPercent   =  0.80;  // Power for extending climber
   public static final double kDownPercent = -0.80;  // Power for retracting climber (negative)
