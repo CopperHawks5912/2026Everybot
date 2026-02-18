@@ -28,7 +28,7 @@ public class ClimberSubsystem extends SubsystemBase {
   
   /** Creates a new ClimberSubsystem. */
   public ClimberSubsystem() {
-    // Initialize hardware
+    // Initialize hardware (we're using a brushed CIM for the climber)
     climberMotor = new SparkMax(CANConstants.kClimberMotorID, MotorType.kBrushed);
     
     // Configure motor

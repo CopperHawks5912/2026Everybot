@@ -75,7 +75,7 @@ public class FuelSubsystem extends SubsystemBase {
   
   /** Creates a new FuelSubsystem. */
   public FuelSubsystem() {
-    // Initialize hardware
+    // Initialize hardware (intake/launcher motors are NEOs, feeder is a brushed CIM motor)
     leftIntakeLauncherMotor = new SparkMax(CANConstants.kLeftIntakeLauncherMotorID, MotorType.kBrushless);
     rightIntakeLauncherMotor = new SparkMax(CANConstants.kRightIntakeLauncherMotorID, MotorType.kBrushless);
     feederMotor = new SparkMax(CANConstants.kFeederMotorID, MotorType.kBrushed);
