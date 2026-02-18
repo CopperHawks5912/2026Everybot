@@ -64,7 +64,7 @@ public final class DifferentialConstants {
   
   /**
    * Position conversion factor: converts encoder ticks to meters
-   * Formula: (wheel circumference) / gear ratio
+   * Formula: wheel circumference / gear ratio
    */
   public static final double kPositionConversionFactor = kWheelCircumferenceMeters / kGearRatio;
   

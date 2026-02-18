@@ -102,12 +102,12 @@ public class ClimberSubsystem extends SubsystemBase {
 
     // Safety: Stop at limits to prevent damage
     // Use > instead of >= to create a "close to limit" zone
-    if (getPosition() > ClimberConstants.kUpperLimitRotations && clampedPower > 0) {
+    if (getPosition() > ClimberConstants.kUpperLimitDegrees && clampedPower > 0) {
       climberMotor.set(0);
       return;
     }
     
-    if (getPosition() < ClimberConstants.kLowerLimitRotations && clampedPower < 0) {
+    if (getPosition() < ClimberConstants.kLowerLimitDegrees && clampedPower < 0) {
       climberMotor.set(0);
       return;
     }
@@ -155,9 +155,9 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public boolean isAtUpperLimit() {
     return MathUtil.isNear(
-      ClimberConstants.kUpperLimitRotations,
+      ClimberConstants.kUpperLimitDegrees,
       getPosition(),
-      ClimberConstants.kPositionTolerance
+      ClimberConstants.kPositionToleranceDegrees
     );
   }
   
@@ -167,9 +167,9 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public boolean isAtLowerLimit() {
     return MathUtil.isNear(
-      ClimberConstants.kLowerLimitRotations,
+      ClimberConstants.kLowerLimitDegrees,
       getPosition(),
-      ClimberConstants.kPositionTolerance
+      ClimberConstants.kPositionToleranceDegrees
     );
   }
   
@@ -179,9 +179,9 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public boolean isAtHomePosition() {
     return MathUtil.isNear(
-      ClimberConstants.kHomeRotations,
+      ClimberConstants.kHomeDegrees,
       getPosition(),
-      ClimberConstants.kPositionTolerance
+      ClimberConstants.kPositionToleranceDegrees
     );
   }
   
@@ -243,7 +243,7 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public Command homeCommand() {
     return run(() -> {
-      if (getPosition() > ClimberConstants.kHomeRotations) {
+      if (getPosition() > ClimberConstants.kHomeDegrees) {
         setPower(ClimberConstants.kDownPercent);
       } else {
         setPower(ClimberConstants.kUpPercent);
@@ -281,7 +281,7 @@ public class ClimberSubsystem extends SubsystemBase {
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.setSmartDashboardType("ClimberSubsystem");
-    builder.addDoubleProperty("Position (rotations)", this::getPosition, null);
+    builder.addDoubleProperty("Position (degrees)", this::getPosition, null);
     builder.addDoubleProperty("Current (A)", this::getCurrent, null);
     builder.addDoubleProperty("Temperature (C)", this::getTemperature, null);
     builder.addBooleanProperty("At Upper Limit", this::isAtUpperLimit, null);

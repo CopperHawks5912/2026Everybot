@@ -22,13 +22,13 @@ public final class ClimberConstants {
   public static final double kGearRatio = 100.0; // TODO: Check your gearbox
 
   /**
-   * Position conversion factor: converts encoder ticks to meters
-   * Formula: (wheel circumference) / gear ratio
+   * Position conversion factor: converts encoder ticks to degrees
+   * Formula: 360 degrees / gear ratio
    */
-  public static final double kPositionConversionFactor = 1 / kGearRatio;
+  public static final double kPositionConversionFactor = 360.0 / kGearRatio;
   
   /**
-   * Velocity conversion factor: converts encoder ticks/minute to meters/second
+   * Velocity conversion factor: converts encoder ticks/minute to degrees/second
    * Formula: position conversion factor / 60 (to convert minutes to seconds)
    */
   public static final double kVelocityConversionFactor = kPositionConversionFactor / 60.0;
@@ -39,12 +39,12 @@ public final class ClimberConstants {
   
   // Soft limits (in encoder rotations)
   // Set these based on your climber's physical range of motion
-  public static final double kUpperLimitRotations = 100.0;  // Maximum extension
-  public static final double kLowerLimitRotations = 0.0;    // Fully retracted
-  public static final double kHomeRotations       = 25.0;   // Home position
-  public static final double kPositionTolerance   = 0.1;    // Tolerance for position control (in rotations)
+  public static final double kUpperLimitDegrees         = 180.0;  // Maximum extension
+  public static final double kLowerLimitDegrees         = -90.0;   // Fully retracted
+  public static final double kHomeDegrees               =   0.0;    // Home position
+  public static final double kPositionToleranceDegrees  =   2.0;    // Tolerance for position control (in degrees)
   
   // Stall detection thresholds
   public static final double kStallCurrentThreshold  = 35.0;   // Amps - indicates motor is working hard
-  public static final double kStallVelocityThreshold = 0.5;    // Rotations/sec - indicates motor not moving
+  public static final double kStallVelocityThreshold = 0.5;    // Degrees/sec - indicates motor not moving
 }
