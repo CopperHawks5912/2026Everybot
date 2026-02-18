@@ -864,5 +864,6 @@ public class DifferentialSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Voltage (V)", () -> Utils.showDouble(getVoltage()), null);
     builder.addDoubleProperty("Current (A)", () -> Utils.showDouble(getCurrent()), null);
     builder.addDoubleProperty("Temperature (C)", () -> Utils.showDouble(getTemperature()), null);
+    builder.addBooleanProperty("Inverted", this::isInverted, null);
   }
 }
