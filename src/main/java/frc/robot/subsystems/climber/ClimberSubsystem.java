@@ -35,7 +35,7 @@ public class ClimberSubsystem extends SubsystemBase {
     configureMotor();
     
     // Initialize encoder
-    climberEncoder = climberMotor.getEncoder();
+    climberEncoder = climberMotor.getAlternateEncoder();
     
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
@@ -61,13 +61,13 @@ public class ClimberSubsystem extends SubsystemBase {
 
     // Optimize CAN status frames for reduced lag
     climbConfig.signals
-      .primaryEncoderPositionPeriodMs(500)  // Position: 100Hz (was Status2)
-      .primaryEncoderVelocityPeriodMs(500)  // Velocity: 100Hz (was Status2)
-      .appliedOutputPeriodMs(500)           // Applied output: 10Hz (was Status0)
-      .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
-      .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
-      .externalOrAltEncoderPosition(500)    // Alt encoder: unused (was Status4)
-      .externalOrAltEncoderVelocity(500);   // Alt encoder: unused (was Status4)
+      .externalOrAltEncoderPosition(40)      // Fast enough for limit detection
+      .externalOrAltEncoderVelocity(500)     // Not used
+      .primaryEncoderPositionPeriodMs(500)   // Not used (CIM has no built-in encoder)
+      .primaryEncoderVelocityPeriodMs(500)   // Not used (CIM has no built-in encoder)
+      .appliedOutputPeriodMs(500)            // Not needed for open-loop control
+      .faultsPeriodMs(200)                   // Keep at 200ms for fault detection
+      .analogVoltagePeriodMs(500);           // Not used
 
     // apply configuration
     climberMotor.configure(
