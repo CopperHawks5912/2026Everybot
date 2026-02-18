@@ -78,7 +78,12 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {  
+    // Check limits and stop if exceeded
+    if (isAtUpperLimit() || isAtLowerLimit()) {
+      setPower(0);
+    }
+  }
     
   // ==================== Internal State Modifiers ====================
   
