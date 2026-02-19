@@ -387,7 +387,6 @@ public class DifferentialSubsystem extends SubsystemBase {
         // Reject large translation jumps
         double translationDistance = robotPose.getTranslation().getDistance(visionPose.getTranslation());
         if (translationDistance > DifferentialConstants.kVisionMaxTranslationJump) {
-          SmartDashboard.putNumber("Drive/Vision Rejected Translation (m)", translationDistance);
           continue;
         }
 
@@ -396,7 +395,6 @@ public class DifferentialSubsystem extends SubsystemBase {
           robotPose.getRotation().minus(visionPose.getRotation()).getDegrees()
         );
         if (rotationDifference > DifferentialConstants.kVisionMaxRotationJump) {
-          SmartDashboard.putNumber("Drive/Vision Rejected Rotation (deg)", rotationDifference);
           continue;
         }
 
@@ -410,10 +408,7 @@ public class DifferentialSubsystem extends SubsystemBase {
           visionPose,
           timestamp,
           VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
-        );
-        
-        SmartDashboard.putNumber("Drive/Vision Accepted Count", 
-          SmartDashboard.getNumber("Drive/Vision Accepted Count", 0) + 1);
+        );        
       } catch (Exception e) {
         Utils.logError("Error adding vision measurement: " + e.getMessage());
       }
@@ -587,10 +582,10 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @return Distance in meters to the alliance hub
    */
   public double getDistanceToAllianceHub() {
-    Translation2d hubCenter = Utils.isRedAlliance() 
-      ? FieldConstants.kRedHubCenter 
-      : FieldConstants.kBlueHubCenter;
-    return getPose().getTranslation().getDistance(hubCenter);
+    if (Utils.isRedAlliance()) {
+      return getPose().getTranslation().getDistance(FieldConstants.kRedHubCenter);
+    }
+    return getPose().getTranslation().getDistance(FieldConstants.kBlueHubCenter);
   }
   
   /**
