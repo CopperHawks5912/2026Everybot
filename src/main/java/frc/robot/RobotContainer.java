@@ -33,7 +33,7 @@ import frc.robot.subsystems.drive.DifferentialSubsystem;
  */
 public class RobotContainer {
   // Initialize our controllers
-  final CommandXboxController driverXbox = new CommandXboxController(0);
+  private final CommandXboxController driverXbox = new CommandXboxController(0);
    
   // The robot's subsystems are defined here...
   private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
