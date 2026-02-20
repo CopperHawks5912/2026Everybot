@@ -360,9 +360,7 @@ public class DifferentialSubsystem extends SubsystemBase {
       }
 
       // Reject large rotation jumps
-      double rotationDifference = Math.abs(
-        robotPose.getRotation().minus(visionPose.getRotation()).getDegrees()
-      );
+      double rotationDifference = Math.abs(robotPose.getRotation().minus(visionPose.getRotation()).getDegrees());
       if (rotationDifference > DifferentialConstants.kVisionMaxRotationJump) {
         return;
       }
