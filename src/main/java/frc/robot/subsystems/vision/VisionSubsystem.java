@@ -159,10 +159,10 @@ public class VisionSubsystem extends SubsystemBase {
   /**
    * Validates a pose estimate to reject obviously incorrect measurements
    * @param result The photon camera pipeline result validate
-   * @param estimatedPose The estimated robot pose from the camera
+   * @param estimate The estimated robot pose from the camera
    * @return True if the pose is valid
    */
-  private boolean isValidPose(PhotonPipelineResult result, EstimatedRobotPose estimatedPose) {
+  private boolean isValidPose(PhotonPipelineResult result, EstimatedRobotPose estimate) {
     // Check for single tag estimates
     if (result.getTargets().size() == 1) {
       // Get the target
@@ -180,7 +180,7 @@ public class VisionSubsystem extends SubsystemBase {
     }
     
     // Get the 2D pose for boundary checks
-    Pose2d pose2d = estimatedPose.estimatedPose.toPose2d();
+    Pose2d pose2d = estimate.estimatedPose.toPose2d();
     
     // Check if pose is within field boundaries
     if (!isPoseOnField(pose2d)) {
@@ -188,7 +188,7 @@ public class VisionSubsystem extends SubsystemBase {
     }
     
     // Check Z coordinate (robot should be on the ground)
-    double z = estimatedPose.estimatedPose.getZ();
+    double z = estimate.estimatedPose.getZ();
     if (Math.abs(z) > VisionConstants.kZMargin) {
       return false;
     }
