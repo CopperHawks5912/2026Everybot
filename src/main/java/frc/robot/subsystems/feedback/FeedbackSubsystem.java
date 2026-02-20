@@ -184,6 +184,7 @@ public class FeedbackSubsystem extends SubsystemBase {
           gradientPosition
       );
       
+      // Set the LED color
       ledBuffer.setLED(i, interpolatedColor);
     }
   }
