@@ -39,8 +39,9 @@ public class RobotContainer {
   private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
   private final FeedbackSubsystem feedbackSubsystem = new FeedbackSubsystem(driverXbox);
   private final FuelSubsystem fuelSubsystem = new FuelSubsystem();
-  private final VisionSubsystem visionSubsystem = new VisionSubsystem();
-  private final DifferentialSubsystem driveSubsystem = new DifferentialSubsystem(visionSubsystem);
+  private final DifferentialSubsystem driveSubsystem = new DifferentialSubsystem();
+  @SuppressWarnings("unused")
+  private final VisionSubsystem visionSubsystem = new VisionSubsystem(driveSubsystem::addVisionMeasurement);
 
   // Auto choosers
   private SendableChooser<String> autoChooser = new SendableChooser<>();

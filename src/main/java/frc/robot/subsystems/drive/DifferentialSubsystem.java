@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
@@ -59,8 +58,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.Constants.CANConstants;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.subsystems.vision.VisionSubsystem;
-import frc.robot.subsystems.vision.VisionSubsystem.VisionMeasurement;
 import frc.robot.util.Utils;
 
 public class DifferentialSubsystem extends SubsystemBase {
@@ -89,9 +86,6 @@ public class DifferentialSubsystem extends SubsystemBase {
   private final SlewRateLimiter xSpeedLimiter;
   private final SlewRateLimiter rSpeedLimiter;
 
-  // Vision subsystem for pose correction
-  private final VisionSubsystem visionSubsystem;
-
   // Field visualization
   private final Field2d field2d = new Field2d();
 
@@ -109,10 +103,7 @@ public class DifferentialSubsystem extends SubsystemBase {
   /**
    * Creates a new DifferentialSubsystem.
    */
-  public DifferentialSubsystem(VisionSubsystem vision) {
-    // Store the vision subsystem
-    this.visionSubsystem = vision;
-
+  public DifferentialSubsystem() {
     // Initialize the slew rate limiters
     xSpeedLimiter = new SlewRateLimiter(DifferentialConstants.kTranslationalSlewRateLimit);
     rSpeedLimiter = new SlewRateLimiter(DifferentialConstants.kRotationalSlewRateLimit);
@@ -324,9 +315,6 @@ public class DifferentialSubsystem extends SubsystemBase {
       leftEncoder.getPosition(), 
       rightEncoder.getPosition()
     );
-
-    // Add vision measurements to the pose estimator
-    addVisionMeasurements();
     
     // Update field visualization
     field2d.setRobotPose(getPose());
@@ -335,83 +323,58 @@ public class DifferentialSubsystem extends SubsystemBase {
   // ==================== Internal State Modifiers ====================
 
   /**
-   * Updates pose estimation using vision measurements from VisionSubsystem
+   * Add a vision measurement consumer to the pose estimator with validation and filtering.
+   * This method can be called by the VisionSubsystem whenever a new vision measurement is available,
+   * and it will handle validation and filtering before adding it to the pose estimator.
+   * @param pose The vision pose to add
+   * @param timestamp The timestamp of the vision measurement
+   * @param stdDevs The standard deviations of the vision measurement
    */
-  private void addVisionMeasurements() {
-    // Exit early if vision subsystem is not available or is disabled
-    if (visionSubsystem == null || !visionSubsystem.isEnabled()) {
-      return;
-    }
-
+  public void addVisionMeasurement(Pose2d visionPose, double timestamp, double[] stdDevs) {
     // Get current time
     double now = Timer.getFPGATimestamp();
-    
-    // Get all latest vision measurements
-    List<VisionMeasurement> measurements = visionSubsystem.getLatestMeasurements();
-    
-    // Exit if no measurements
-    if (measurements == null || measurements.isEmpty()) {
-      return;
-    }
 
-    // Process each vision measurement
-    for (VisionMeasurement measurement : measurements) {
-      try {
-        // Validate measurement exists
-        if (measurement == null) {
-          continue;
-        }
-        
-        Pose2d visionPose = measurement.getPose();
-        double timestamp = measurement.getTimestampSeconds();
-        double[] stdDevs = measurement.getStandardDeviations();
-        
-        // Validate components
-        if (visionPose == null || stdDevs == null || stdDevs.length < 3) {
-          continue;
-        }
-
-        // Reject timestamps older than 0.3 seconds
-        if ((now - timestamp) > DifferentialConstants.kVisionMeasurementMaxAge) {
-          continue;
-        }
-
-        // Reject timestamps from the future
-        if (timestamp > now) {
-          continue;
-        }
-
-        // Get the robot's current pose
-        Pose2d robotPose = poseEstimator.getEstimatedPosition();
-
-        // Reject large translation jumps
-        double translationDistance = robotPose.getTranslation().getDistance(visionPose.getTranslation());
-        if (translationDistance > DifferentialConstants.kVisionMaxTranslationJump) {
-          continue;
-        }
-
-        // Reject large rotation jumps
-        double rotationDifference = Math.abs(
-          robotPose.getRotation().minus(visionPose.getRotation()).getDegrees()
-        );
-        if (rotationDifference > DifferentialConstants.kVisionMaxRotationJump) {
-          continue;
-        }
-
-        // Reject poses outside the field boundaries
-        if (!visionSubsystem.isPoseOnField(visionPose)) {
-          continue;
-        }
-
-        // If we make it here => add vision measurement to pose estimator
-        poseEstimator.addVisionMeasurement(
-          visionPose,
-          timestamp,
-          VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
-        );        
-      } catch (Exception e) {
-        Utils.logError("Error adding vision measurement: " + e.getMessage());
+    try {      
+      // Validate components
+      if (visionPose == null || stdDevs == null || stdDevs.length < 3) {
+        return;
       }
+
+      // Reject timestamps older than 0.3 seconds
+      if ((now - timestamp) > DifferentialConstants.kVisionMeasurementMaxAge) {
+        return;
+      }
+
+      // Reject timestamps from the future
+      if (timestamp > now) {
+        return;
+      }
+
+      // Get the robot's current pose
+      Pose2d robotPose = poseEstimator.getEstimatedPosition();
+
+      // Reject large translation jumps
+      double translationDistance = robotPose.getTranslation().getDistance(visionPose.getTranslation());
+      if (translationDistance > DifferentialConstants.kVisionMaxTranslationJump) {
+        return;
+      }
+
+      // Reject large rotation jumps
+      double rotationDifference = Math.abs(
+        robotPose.getRotation().minus(visionPose.getRotation()).getDegrees()
+      );
+      if (rotationDifference > DifferentialConstants.kVisionMaxRotationJump) {
+        return;
+      }
+
+      // If we make it here => add vision measurement to pose estimator
+      poseEstimator.addVisionMeasurement(
+        visionPose,
+        timestamp,
+        VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
+      );        
+    } catch (Exception e) {
+      Utils.logError("Error adding vision measurement: " + e.getMessage());
     }
   }
 
