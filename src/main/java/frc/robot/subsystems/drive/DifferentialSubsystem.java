@@ -323,9 +323,10 @@ public class DifferentialSubsystem extends SubsystemBase {
   // ==================== Internal State Modifiers ====================
 
   /**
-   * Add a vision measurement consumer to the pose estimator with validation and filtering.
-   * This method can be called by the VisionSubsystem whenever a new vision measurement is available,
-   * and it will handle validation and filtering before adding it to the pose estimator.
+   * Add a vision measurement to the pose estimator with validation and filtering.
+   * This method can be called by the VisionSubsystem whenever a new vision 
+   * measurement is available, and it will handle validation and filtering 
+   * before adding it to the pose estimator.
    * @param visionPose The vision pose to add
    * @param timestamp The timestamp of the vision measurement
    * @param stdDevs The standard deviations of the vision measurement
