@@ -320,7 +320,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     field2d.setRobotPose(getPose());
   }
 
-  // ==================== Internal State Modifiers ====================
+  // ==================== Vision Measurement Consumer ====================
 
   /**
    * Add a vision measurement to the pose estimator with validation and filtering.
@@ -375,6 +375,8 @@ public class DifferentialSubsystem extends SubsystemBase {
       Utils.logError("Error adding vision measurement: " + e.getMessage());
     }
   }
+
+  // ==================== Internal State Modifiers ====================
 
   /**
    * Reset the robot's odometry
