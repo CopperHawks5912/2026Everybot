@@ -297,7 +297,7 @@ public class FuelSubsystem extends SubsystemBase {
   
   /**
    * Set launcher motors to a specific velocity
-   * Used for shooting operations
+   * Used for launching/shooting operations
    * @param rpm RPM to set the intake/launcher motors to
    */
   private void setLauncherVelocity(double rpm) {
