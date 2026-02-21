@@ -318,7 +318,6 @@ public class DifferentialSubsystem extends SubsystemBase {
     );
   }
 
-
   @Override
   public void periodic() {
     // Update the pose estimator with the latest readings
