@@ -449,42 +449,6 @@ public class FuelSubsystem extends SubsystemBase {
   }
   
   /**
-   * Command to spin up the launcher to a specific RPM
-   * Does NOT feed - use with feedCommand() or launchCommand()
-   * @param rpm Target RPM for the launcher
-   * @return Command that spins up the launcher and waits until at speed
-   */
-  public Command spinUpCommand(double rpm) {
-    return run(() -> {
-      setLauncherVelocity(rpm);
-      setFeederRoller(FuelConstants.kFeederSpinUpPreLaunchPercent); // Hold fuel back
-    })
-    .until(this::isAtSpeed)
-    .withName("SpinUpLauncher");
-  }
-  
-  /**
-   * Command to spin up the launcher using default launch RPM
-   * @return Command that spins up the launcher
-   */
-  public Command spinUpCommand() {
-    return spinUpCommand(FuelConstants.kLauncherLaunchingRPM);
-  }
-  
-  /**
-   * Command to feed fuel into the launcher
-   * Assumes launcher is already at speed!
-   * @return Command that runs the feeder to launch fuel
-   */
-  public Command feedCommand() {
-    return run(() -> {
-      // Maintain launcher speed and feed
-      setLauncherVelocity(targetRPM); // Keep spinning
-      setFeederRoller(FuelConstants.kFeederLaunchingPercent);
-    }).withName("FeedFuel");
-  }
-  
-  /**
    * Command to pass fuel out of the launcher at a lower speed
    * Hold button: spins up → automatically feeds when ready
    * Release button: stops everything immediately
