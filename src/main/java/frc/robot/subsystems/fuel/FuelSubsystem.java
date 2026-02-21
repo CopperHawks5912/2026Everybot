@@ -236,8 +236,8 @@ public class FuelSubsystem extends SubsystemBase {
     launcherConfig.closedLoop
       .outputRange(-1, 1)
       .p(FuelConstants.kLauncherP)
-      .i(0)
-      .d(0);
+      .i(FuelConstants.kLauncherI)
+      .d(FuelConstants.kLauncherD);
 
     // feedforward parameters
     launcherConfig.closedLoop.feedForward
