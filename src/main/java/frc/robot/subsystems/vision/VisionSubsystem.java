@@ -116,7 +116,9 @@ public class VisionSubsystem extends SubsystemBase {
         // Process ALL cached unread results
         for (PhotonPipelineResult result : camera.getCachedResults()) {
           // Skip further processing if result has no targets
-          if (!result.hasTargets()) continue;
+          if (!result.hasTargets())  {
+             continue;
+          }
           
           // Get pose estimate from multi-tag estimator
           Optional<EstimatedRobotPose> poseResult = camera.getPoseEstimator().estimateCoprocMultiTagPose(result);
@@ -126,29 +128,27 @@ public class VisionSubsystem extends SubsystemBase {
             poseResult = camera.getPoseEstimator().estimateLowestAmbiguityPose(result);
           };
 
-          // Skip further processing if no pose result was returned
-          if (poseResult.isEmpty()) continue;
-          
+          // Skip if multi-tag and lowest ambiguity both returned nothing
+          if (poseResult.isEmpty()) {
+             continue;
+          }
+
           // Get estimated pose
           EstimatedRobotPose estimate = poseResult.get();
-          
-          // Skip if estimate is invalid
           if (estimate == null || estimate.estimatedPose == null) {
             continue;
           }
           
           // Skip further processing if the pose estimate is not valid
-          if (!isValidPose(result, estimate)) continue;
+          if (!isValidPose(result, estimate))  {
+             continue;
+          }
           
           // Calculate standard deviations
           double[] stdDevs = calculateStandardDeviations(result);
 
           // Push vision measurement to drive subsystem via the vision consumer callback
-          this.visionConsumer.accept(
-            estimate.estimatedPose.toPose2d(),
-            estimate.timestampSeconds,
-            stdDevs
-          );
+          visionConsumer.accept(estimate.estimatedPose.toPose2d(), estimate.timestampSeconds, stdDevs);
         }
       } catch (Exception e) {
         Utils.logError("Error processing vision for " + camera.getName() + ": " + e.getMessage());
