@@ -111,6 +111,20 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Create the gyro
     gyro = new Navx(CANConstants.kGyroID);
 
+    // Disable certain data to optimize BUS saturation
+    gyro.enableOptionalMessages(
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true
+    );
+
     // Initialize drive motors with correct MotorType (we're using brushed CIM motors)
     leftLeaderMotor = new SparkMax(CANConstants.kLeftDifferentialLeaderMotorID, MotorType.kBrushed);
     leftFollowerMotor = new SparkMax(CANConstants.kLeftDifferentialFollowerMotorID, MotorType.kBrushed);
