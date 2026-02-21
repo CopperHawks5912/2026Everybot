@@ -204,8 +204,8 @@ public class FuelSubsystem extends SubsystemBase {
 
     // Optimize CAN status frames for reduced lag
     feederConfig.signals
-      .primaryEncoderPositionPeriodMs(40)   // Position: 100Hz (was Status2)
-      .primaryEncoderVelocityPeriodMs(20)   // Velocity: 100Hz (was Status2)
+      .primaryEncoderPositionPeriodMs(500)  // Position: not used
+      .primaryEncoderVelocityPeriodMs(20)   // Velocity: 50Hz (was Status2)
       .appliedOutputPeriodMs(100)           // Applied output: 10Hz (was Status0)
       .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
       .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
@@ -247,8 +247,8 @@ public class FuelSubsystem extends SubsystemBase {
 
     // Optimize CAN status frames for reduced lag
     launcherConfig.signals
-      .primaryEncoderPositionPeriodMs(40)   // Position: 100Hz (was Status2)
-      .primaryEncoderVelocityPeriodMs(20)   // Velocity: 100Hz (was Status2)
+      .primaryEncoderPositionPeriodMs(500)  // Position: not used
+      .primaryEncoderVelocityPeriodMs(20)   // Velocity: 50Hz (was Status2)
       .appliedOutputPeriodMs(100)           // Applied output: 10Hz (was Status0)
       .faultsPeriodMs(200)                  // Faults: 5Hz (was Status1)
       .analogVoltagePeriodMs(500)           // Analog: unused (was Status3)
