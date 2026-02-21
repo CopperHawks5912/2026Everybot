@@ -117,7 +117,7 @@ public class VisionSubsystem extends SubsystemBase {
         for (PhotonPipelineResult result : camera.getCachedResults()) {
           // Skip further processing if result has no targets
           if (!result.hasTargets())  {
-             continue;
+            continue;
           }
           
           // Get pose estimate from multi-tag estimator
@@ -130,7 +130,7 @@ public class VisionSubsystem extends SubsystemBase {
 
           // Skip if multi-tag and lowest ambiguity both returned nothing
           if (poseResult.isEmpty()) {
-             continue;
+            continue;
           }
 
           // Get estimated pose
@@ -141,7 +141,7 @@ public class VisionSubsystem extends SubsystemBase {
           
           // Skip further processing if the pose estimate is not valid
           if (!isValidPose(result, estimate))  {
-             continue;
+            continue;
           }
           
           // Calculate standard deviations
