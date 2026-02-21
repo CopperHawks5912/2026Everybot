@@ -10,7 +10,7 @@
             "title": "Auto Options",
             "x": 1075.0,
             "y": 350.0,
-            "width": 275.0,
+            "width": 450.0,
             "height": 275.0,
             "type": "List Layout",
             "properties": {
