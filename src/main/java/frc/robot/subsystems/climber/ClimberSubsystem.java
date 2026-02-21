@@ -28,14 +28,14 @@ public class ClimberSubsystem extends SubsystemBase {
   
   /** Creates a new ClimberSubsystem. */
   public ClimberSubsystem() {
-    // Initialize hardware
+    // Initialize hardware (we're using a brushed CIM for the climber)
     climberMotor = new SparkMax(CANConstants.kClimberMotorID, MotorType.kBrushed);
     
     // Configure motor
     configureMotor();
     
     // Initialize encoder
-    climberEncoder = climberMotor.getEncoder();
+    climberEncoder = climberMotor.getAlternateEncoder();
     
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
@@ -59,6 +59,22 @@ public class ClimberSubsystem extends SubsystemBase {
       .voltageCompensation(12) // Consistent behavior across battery voltage
       .idleMode(IdleMode.kBrake); // CRITICAL: Brake mode prevents falling
 
+    // configure the alternate encoder
+    climbConfig.alternateEncoder
+      .countsPerRevolution(ClimberConstants.kEncoderTicksPerRevolution) 
+      .positionConversionFactor(ClimberConstants.kPositionConversionFactor)
+      .velocityConversionFactor(ClimberConstants.kVelocityConversionFactor);
+
+    // Optimize CAN status frames for reduced lag
+    climbConfig.signals
+      .externalOrAltEncoderPosition(40)      // Fast enough for limit detection
+      .externalOrAltEncoderVelocity(500)     // Not used
+      .primaryEncoderPositionPeriodMs(500)   // Not used (CIM has no built-in encoder)
+      .primaryEncoderVelocityPeriodMs(500)   // Not used (CIM has no built-in encoder)
+      .appliedOutputPeriodMs(500)            // Not needed for open-loop control
+      .faultsPeriodMs(200)                   // Keep at 200ms for fault detection
+      .analogVoltagePeriodMs(500);           // Not used
+
     // apply configuration
     climberMotor.configure(
       climbConfig, 
@@ -68,7 +84,12 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {  
+    // Check limits and stop if exceeded
+    if (isAtUpperLimit() || isAtLowerLimit()) {
+      setPower(0);
+    }
+  }
     
   // ==================== Internal State Modifiers ====================
   
@@ -81,12 +102,12 @@ public class ClimberSubsystem extends SubsystemBase {
 
     // Safety: Stop at limits to prevent damage
     // Use > instead of >= to create a "close to limit" zone
-    if (getPosition() > ClimberConstants.kUpperLimitRotations && clampedPower > 0) {
+    if (getPosition() > ClimberConstants.kUpperLimitDegrees && clampedPower > 0) {
       climberMotor.set(0);
       return;
     }
     
-    if (getPosition() < ClimberConstants.kLowerLimitRotations && clampedPower < 0) {
+    if (getPosition() < ClimberConstants.kLowerLimitDegrees && clampedPower < 0) {
       climberMotor.set(0);
       return;
     }
@@ -134,9 +155,9 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public boolean isAtUpperLimit() {
     return MathUtil.isNear(
-      ClimberConstants.kUpperLimitRotations,
+      ClimberConstants.kUpperLimitDegrees,
       getPosition(),
-      ClimberConstants.kPositionTolerance
+      ClimberConstants.kPositionToleranceDegrees
     );
   }
   
@@ -146,9 +167,9 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public boolean isAtLowerLimit() {
     return MathUtil.isNear(
-      ClimberConstants.kLowerLimitRotations,
+      ClimberConstants.kLowerLimitDegrees,
       getPosition(),
-      ClimberConstants.kPositionTolerance
+      ClimberConstants.kPositionToleranceDegrees
     );
   }
   
@@ -158,9 +179,9 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public boolean isAtHomePosition() {
     return MathUtil.isNear(
-      ClimberConstants.kHomeRotations,
+      ClimberConstants.kHomeDegrees,
       getPosition(),
-      ClimberConstants.kPositionTolerance
+      ClimberConstants.kPositionToleranceDegrees
     );
   }
   
@@ -202,7 +223,7 @@ public class ClimberSubsystem extends SubsystemBase {
     return run(() -> setPower(ClimberConstants.kUpPercent))
       .until(this::isAtUpperLimit)
       .andThen(stopCommand())
-      .withName("ExtendToLimit");
+      .withName("UpToLimit");
   }
   
   /**
@@ -213,7 +234,7 @@ public class ClimberSubsystem extends SubsystemBase {
     return run(() -> setPower(ClimberConstants.kDownPercent))
       .until(this::isAtLowerLimit)
       .andThen(stopCommand())
-      .withName("RetractToLimit");
+      .withName("DownToLimit");
   }
   
   /**
@@ -222,7 +243,7 @@ public class ClimberSubsystem extends SubsystemBase {
    */
   public Command homeCommand() {
     return run(() -> {
-      if (getPosition() > ClimberConstants.kHomeRotations) {
+      if (getPosition() > ClimberConstants.kHomeDegrees) {
         setPower(ClimberConstants.kDownPercent);
       } else {
         setPower(ClimberConstants.kUpPercent);
@@ -260,11 +281,12 @@ public class ClimberSubsystem extends SubsystemBase {
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.setSmartDashboardType("ClimberSubsystem");
-    builder.addDoubleProperty("Position (rotations)", this::getPosition, null);
+    builder.addDoubleProperty("Position (degrees)", this::getPosition, null);
     builder.addDoubleProperty("Current (A)", this::getCurrent, null);
     builder.addDoubleProperty("Temperature (C)", this::getTemperature, null);
     builder.addBooleanProperty("At Upper Limit", this::isAtUpperLimit, null);
     builder.addBooleanProperty("At Lower Limit", this::isAtLowerLimit, null);
+    builder.addBooleanProperty("At Home Position", this::isAtHomePosition, null);
     builder.addBooleanProperty("Stalled", this::isStalled, null);
   }
 }

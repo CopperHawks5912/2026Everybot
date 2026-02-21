@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
@@ -56,10 +55,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+
 import frc.robot.Constants.CANConstants;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.subsystems.vision.VisionSubsystem;
-import frc.robot.subsystems.vision.VisionSubsystem.VisionMeasurement;
 import frc.robot.util.Utils;
 
 public class DifferentialSubsystem extends SubsystemBase {
@@ -88,27 +86,24 @@ public class DifferentialSubsystem extends SubsystemBase {
   private final SlewRateLimiter xSpeedLimiter;
   private final SlewRateLimiter rSpeedLimiter;
 
-  // Vision subsystem for pose correction
-  private final VisionSubsystem visionSubsystem;
-
   // Field visualization
   private final Field2d field2d = new Field2d();
 
-  // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
-  private final MutVoltage m_appliedVoltage = Volts.mutable(0);
-  private final MutDistance m_distance = Meters.mutable(0);
-  private final MutLinearVelocity m_velocity = MetersPerSecond.mutable(0);
+  // Flag to indicate if drive controls are inverted (e.g. for climbing)
+  private boolean inverted = false;
+
+  // Mutable holders for unit-safe voltage values, persisted to avoid reallocation.
+  private final MutVoltage appliedVoltage = Volts.mutable(0);
+  private final MutDistance distance = Meters.mutable(0);
+  private final MutLinearVelocity velocity = MetersPerSecond.mutable(0);
 
   // Create a new SysId routine for characterizing the drive.
-  private final SysIdRoutine m_sysIdRoutine;
+  private final SysIdRoutine sysIdRoutine;
 
   /**
    * Creates a new DifferentialSubsystem.
    */
-  public DifferentialSubsystem(VisionSubsystem vision) {
-    // Store the vision subsystem
-    this.visionSubsystem = vision;
-
+  public DifferentialSubsystem() {
     // Initialize the slew rate limiters
     xSpeedLimiter = new SlewRateLimiter(DifferentialConstants.kTranslationalSlewRateLimit);
     rSpeedLimiter = new SlewRateLimiter(DifferentialConstants.kRotationalSlewRateLimit);
@@ -196,7 +191,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     field2d.setRobotPose(getPose());
 
     // Initialize SysId routine for drive characterization
-    m_sysIdRoutine = new SysIdRoutine(
+    sysIdRoutine = new SysIdRoutine(
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         voltage -> {
@@ -205,13 +200,13 @@ public class DifferentialSubsystem extends SubsystemBase {
         },
         log -> {
           log.motor("drive-left")
-            .voltage(m_appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .linearPosition(m_distance.mut_replace(leftEncoder.getPosition(), Meters))
-            .linearVelocity(m_velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
+            .voltage(appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .linearPosition(distance.mut_replace(leftEncoder.getPosition(), Meters))
+            .linearVelocity(velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
           log.motor("drive-right")
-            .voltage(m_appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .linearPosition(m_distance.mut_replace(rightEncoder.getPosition(), Meters))
-            .linearVelocity(m_velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
+            .voltage(appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .linearPosition(distance.mut_replace(rightEncoder.getPosition(), Meters))
+            .linearVelocity(velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
         },
         this
       )
@@ -219,6 +214,7 @@ public class DifferentialSubsystem extends SubsystemBase {
 
     // Initialize dashboard
     SmartDashboard.putData("Drive/Field", field2d);
+    SmartDashboard.putData("Drive/Gyro", gyro);
     SmartDashboard.putData("Drive/Differential", this);
     
     // Output initialization progress
@@ -319,101 +315,68 @@ public class DifferentialSubsystem extends SubsystemBase {
       leftEncoder.getPosition(), 
       rightEncoder.getPosition()
     );
-
-    // Add vision measurements to the pose estimator
-    addVisionMeasurements();
     
     // Update field visualization
     field2d.setRobotPose(getPose());
   }
 
-  // ==================== Internal State Modifiers ====================
+  // ==================== Vision Measurement Consumer ====================
 
   /**
-   * Updates pose estimation using vision measurements from VisionSubsystem
+   * Add a vision measurement to the pose estimator with validation and filtering.
+   * This method can be called by the VisionSubsystem whenever a new vision 
+   * measurement is available.
+   * @param visionPose The vision pose to add
+   * @param timestamp The timestamp of the vision measurement
+   * @param stdDevs The standard deviations of the vision measurement
    */
-  private void addVisionMeasurements() {
-    // Exit early if vision subsystem is not available or is disabled
-    if (visionSubsystem == null || !visionSubsystem.isEnabled()) {
-      return;
-    }
-
+  public void addVisionMeasurement(Pose2d visionPose, double timestamp, double[] stdDevs) {
     // Get current time
     double now = Timer.getFPGATimestamp();
-    
-    // Get all latest vision measurements
-    List<VisionMeasurement> measurements = visionSubsystem.getLatestMeasurements();
-    
-    // Exit if no measurements
-    if (measurements == null || measurements.isEmpty()) {
-      return;
-    }
 
-    // Process each vision measurement
-    for (VisionMeasurement measurement : measurements) {
-      try {
-        // Validate measurement exists
-        if (measurement == null) {
-          continue;
-        }
-        
-        Pose2d visionPose = measurement.getPose();
-        double timestamp = measurement.getTimestampSeconds();
-        double[] stdDevs = measurement.getStandardDeviations();
-        
-        // Validate components
-        if (visionPose == null || stdDevs == null || stdDevs.length < 3) {
-          continue;
-        }
-
-        // Reject timestamps older than 0.3 seconds
-        if ((now - timestamp) > DifferentialConstants.kVisionMeasurementMaxAge) {
-          continue;
-        }
-
-        // Reject timestamps from the future
-        if (timestamp > now) {
-          continue;
-        }
-
-        // Get the robot's current pose
-        Pose2d robotPose = poseEstimator.getEstimatedPosition();
-
-        // Reject large translation jumps
-        double translationDistance = robotPose.getTranslation().getDistance(visionPose.getTranslation());
-        if (translationDistance > DifferentialConstants.kVisionMaxTranslationJump) {
-          SmartDashboard.putNumber("Drive/Vision Rejected Translation (m)", translationDistance);
-          continue;
-        }
-
-        // Reject large rotation jumps
-        double rotationDifference = Math.abs(
-          robotPose.getRotation().minus(visionPose.getRotation()).getDegrees()
-        );
-        if (rotationDifference > DifferentialConstants.kVisionMaxRotationJump) {
-          SmartDashboard.putNumber("Drive/Vision Rejected Rotation (deg)", rotationDifference);
-          continue;
-        }
-
-        // Reject poses outside the field boundaries
-        if (!visionSubsystem.isPoseOnField(visionPose)) {
-          continue;
-        }
-
-        // If we make it here => add vision measurement to pose estimator
-        poseEstimator.addVisionMeasurement(
-          visionPose,
-          timestamp,
-          VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
-        );
-        
-        SmartDashboard.putNumber("Drive/Vision Accepted Count", 
-          SmartDashboard.getNumber("Drive/Vision Accepted Count", 0) + 1);
-      } catch (Exception e) {
-        Utils.logError("Error adding vision measurement: " + e.getMessage());
+    try {      
+      // Validate components
+      if (visionPose == null || stdDevs == null || stdDevs.length < 3) {
+        return;
       }
+
+      // Reject timestamps older than 0.3 seconds
+      if ((now - timestamp) > DifferentialConstants.kVisionMeasurementMaxAge) {
+        return;
+      }
+
+      // Reject timestamps from the future
+      if (timestamp > now) {
+        return;
+      }
+
+      // Get the robot's current pose
+      Pose2d robotPose = poseEstimator.getEstimatedPosition();
+
+      // Reject large translation jumps
+      double translationDistance = robotPose.getTranslation().getDistance(visionPose.getTranslation());
+      if (translationDistance > DifferentialConstants.kVisionMaxTranslationJump) {
+        return;
+      }
+
+      // Reject large rotation jumps
+      double rotationDifference = Math.abs(robotPose.getRotation().minus(visionPose.getRotation()).getDegrees());
+      if (rotationDifference > DifferentialConstants.kVisionMaxRotationJump) {
+        return;
+      }
+
+      // If we make it here => add vision measurement to pose estimator
+      poseEstimator.addVisionMeasurement(
+        visionPose,
+        timestamp,
+        VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
+      );        
+    } catch (Exception e) {
+      Utils.logError("Error adding vision measurement: " + e.getMessage());
     }
   }
+
+  // ==================== Internal State Modifiers ====================
 
   /**
    * Reset the robot's odometry
@@ -582,10 +545,10 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @return Distance in meters to the alliance hub
    */
   public double getDistanceToAllianceHub() {
-    Translation2d hubCenter = Utils.isRedAlliance() 
-      ? FieldConstants.kRedHubCenter 
-      : FieldConstants.kBlueHubCenter;
-    return getPose().getTranslation().getDistance(hubCenter);
+    if (Utils.isRedAlliance()) {
+      return getPose().getTranslation().getDistance(FieldConstants.kRedHubCenter);
+    }
+    return getPose().getTranslation().getDistance(FieldConstants.kBlueHubCenter);
   }
   
   /**
@@ -619,14 +582,56 @@ public class DifferentialSubsystem extends SubsystemBase {
             rightLeaderMotor.getAppliedOutput() * rightLeaderMotor.getBusVoltage()) / 2.0;
   }
 
+  /**
+   * Check if the drive controls are currently inverted
+   * @return True if the drive controls are inverted, false otherwise
+   */
+  public boolean isInverted() {
+    return inverted;
+  }
+
   // ==================== Command Factories ====================
-  
+    /**
+   * Command factory for binding to initAutonomous
+   */
+  public Command initAutonomousCommand() {
+    return runOnce(() -> {
+      resetOdometry();
+      setMotorBrake(true);
+      inverted = false;
+    });
+  }
+
+  /**
+   * Command factory for binding to initTeleop
+   */
+  public Command initTeleopCommand() {
+    return runOnce(() -> {
+      setMotorBrake(true);
+      inverted = false;
+    });
+  }
+
+  /**
+   * Command factory for binding to end of match
+   */
+  public Command endOfMatchCommand() {
+    return Commands.waitSeconds(5.0)
+      .andThen(runOnce(() -> {
+        setMotorBrake(false);
+        inverted = false;
+      }))
+      .ignoringDisable(true)
+      .withName("EndOfMatchDifferential");
+  }
+
   /**
    * Reset the robot's odometry
    * @return Command that resets the differential drive odometry
    */
   public Command resetOdometryCommand() {
     return runOnce(this::resetOdometry)
+      .ignoringDisable(true)
       .withName("ResetOdometryDifferential");
   }
 
@@ -637,6 +642,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    */
   public Command setMotorBrakeCommand(boolean brake) {
     return runOnce(() -> setMotorBrake(brake))
+      .ignoringDisable(true)
       .withName("SetMotorBrakeDifferential");
   }
   
@@ -647,6 +653,15 @@ public class DifferentialSubsystem extends SubsystemBase {
   public Command stopCommand() {
     return runOnce(this::stop)
       .withName("StopDifferential");
+  }
+  
+  /**
+   * Command to toggle the drive controls inversion
+   * @return Command that toggles the drive controls inversion
+   */
+  public Command toggleInvertControlsCommand() {
+    return runOnce(() -> this.inverted = !this.inverted)
+      .withName("ToggleInvertControlsDifferential");
   }
 
   /**
@@ -670,8 +685,9 @@ public class DifferentialSubsystem extends SubsystemBase {
       Translation2d toHub = hubCenter.minus(currentPose.getTranslation());
       Rotation2d targetAngle = new Rotation2d(toHub.getX(), toHub.getY());
       
-      // Set the target angle as the goal for the PID controller
-      aimPIDController.setGoal(targetAngle.getRadians());
+      // Set the target angle as the goal for the PID controller.
+      // Add Math.PI so that the back of the robot (the launcher) faces the hub.
+      aimPIDController.setGoal(targetAngle.getRadians() + Math.PI);
     })
     .andThen(run(() -> {
       // Calculate uses the previously set goal
@@ -737,6 +753,11 @@ public class DifferentialSubsystem extends SubsystemBase {
       xSpeed *= DifferentialConstants.kTranslationScaling;
       rSpeed *= DifferentialConstants.kRotationScaling;
 
+      // Invert controls if the inverted flag is set
+      if (inverted) {
+        xSpeed = -xSpeed;
+      }
+
       // 4. Drive the robot using the processed inputs (-1 to 1 range),
       //    arcadeDrive automatically squares inputs for finer control at low speeds
       driveArcade(xSpeed, rSpeed);
@@ -748,7 +769,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @param direction The direction (forward or reverse) to run the test in
    */
   public Command sysIdQuasistaticCommand(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
+    return sysIdRoutine.quasistatic(direction);
   }
 
   /**
@@ -756,10 +777,36 @@ public class DifferentialSubsystem extends SubsystemBase {
    * @param direction The direction (forward or reverse) to run the test in
    */
   public Command sysIdDynamicCommand(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
+    return sysIdRoutine.dynamic(direction);
   }
 
   // ==================== Telemetry Methods ====================
+
+  /**
+   * Updates the SmartDashboard with the robot's readiness for autonomous mode.
+   * This should be called perioddically prior to autonomous mode while the robot is disabled.
+   * @param expectedStart The expected starting pose for the selected autonomous mode
+   */
+  public void updateAutoReadiness(Pose2d expectedStart) {
+    if (expectedStart == null) {
+      return;
+    }
+
+    Pose2d currentPose = getPose();
+
+    double xError = expectedStart.getX() - currentPose.getX();
+    double yError = expectedStart.getY() - currentPose.getY();
+    double angleError = expectedStart.getRotation().minus(currentPose.getRotation()).getDegrees();
+
+    boolean inPosition = Math.abs(xError) < 0.1 &&
+                         Math.abs(yError) < 0.1 &&
+                         Math.abs(angleError) < 2.0;
+
+    SmartDashboard.putNumber("Auto/XError (m)", Utils.showDouble(xError));
+    SmartDashboard.putNumber("Auto/YError (m)", Utils.showDouble(yError));
+    SmartDashboard.putNumber("Auto/AngleError (deg)", Utils.showDouble(angleError));
+    SmartDashboard.putBoolean("Auto/RobotInPosition", inPosition);
+  }
 
   /**
    * Initialize Sendable for SmartDashboard
@@ -767,15 +814,15 @@ public class DifferentialSubsystem extends SubsystemBase {
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.setSmartDashboardType("DifferentialSubsystem");
-    builder.addStringProperty("Pose", () -> getPose().toString(), null);
     builder.addDoubleProperty("Left Position (m)", () -> Utils.showDouble(leftEncoder.getPosition()), null);
     builder.addDoubleProperty("Right Position (m)", () -> Utils.showDouble(rightEncoder.getPosition()), null);
-    builder.addDoubleProperty("Left Velocity (m/s)", () -> Utils.showDouble(leftEncoder.getVelocity()), null);
-    builder.addDoubleProperty("Right Velocity (m/s)", () -> Utils.showDouble(rightEncoder.getVelocity()), null);
+    builder.addDoubleProperty("Left Velocity (mps)", () -> Utils.showDouble(leftEncoder.getVelocity()), null);
+    builder.addDoubleProperty("Right Velocity (mps)", () -> Utils.showDouble(rightEncoder.getVelocity()), null);
     builder.addDoubleProperty("Gyro Angle (deg)", () -> Utils.showDouble(gyro.getAngle()), null);
     builder.addDoubleProperty("Dist To Hub (m)", () -> Utils.showDouble(getDistanceToAllianceHub()), null);
     builder.addDoubleProperty("Voltage (V)", () -> Utils.showDouble(getVoltage()), null);
     builder.addDoubleProperty("Current (A)", () -> Utils.showDouble(getCurrent()), null);
     builder.addDoubleProperty("Temperature (C)", () -> Utils.showDouble(getTemperature()), null);
+    builder.addBooleanProperty("Inverted", this::isInverted, null);
   }
 }

@@ -5,54 +5,14 @@
     {
       "name": "Teleoperated",
       "grid_layout": {
-        "layouts": [
-          {
-            "title": "Auto Options",
-            "x": 1075.0,
-            "y": 350.0,
-            "width": 450.0,
-            "height": 275.0,
-            "type": "List Layout",
-            "properties": {
-              "label_position": "TOP"
-            },
-            "children": [
-              {
-                "title": "Auto Command",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 150.0,
-                "height": 150.0,
-                "type": "ComboBox Chooser",
-                "properties": {
-                  "topic": "/SmartDashboard/Auto Command",
-                  "period": 0.06,
-                  "sort_options": false
-                }
-              },
-              {
-                "title": "Auto Delay",
-                "x": 0.0,
-                "y": 0.0,
-                "width": 150.0,
-                "height": 150.0,
-                "type": "ComboBox Chooser",
-                "properties": {
-                  "topic": "/SmartDashboard/Auto Delay",
-                  "period": 0.06,
-                  "sort_options": false
-                }
-              }
-            ]
-          }
-        ],
+        "layouts": [],
         "containers": [
           {
             "title": "Drive Camera",
             "x": 0.0,
             "y": 0.0,
-            "width": 600.0,
-            "height": 350.0,
+            "width": 350.0,
+            "height": 325.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/USB Camera 0",
@@ -61,39 +21,11 @@
             }
           },
           {
-            "title": "FMSInfo",
-            "x": 600.0,
-            "y": 475.0,
-            "width": 475.0,
-            "height": 150.0,
-            "type": "FMSInfo",
-            "properties": {
-              "topic": "/FMSInfo",
-              "period": 0.06
-            }
-          },
-          {
-            "title": "Match Time",
-            "x": 600.0,
-            "y": 350.0,
-            "width": 475.0,
-            "height": 125.0,
-            "type": "Match Time",
-            "properties": {
-              "topic": "/SmartDashboard/Match Time",
-              "period": 0.06,
-              "data_type": "double",
-              "time_display_mode": "Minutes and Seconds",
-              "red_start_time": 15,
-              "yellow_start_time": 30
-            }
-          },
-          {
             "title": "Field",
-            "x": 600.0,
+            "x": 350.0,
             "y": 0.0,
-            "width": 750.0,
-            "height": 350.0,
+            "width": 1000.0,
+            "height": 450.0,
             "type": "Field",
             "properties": {
               "topic": "/SmartDashboard/Drive/Field",
@@ -110,11 +42,11 @@
             }
           },
           {
-            "title": "Dist To Hub (m)",
-            "x": 0.0,
-            "y": 475.0,
-            "width": 600.0,
-            "height": 150.0,
+            "title": "Distance To Hub (m)",
+            "x": 950.0,
+            "y": 450.0,
+            "width": 250.0,
+            "height": 125.0,
             "type": "Large Text Display",
             "properties": {
               "topic": "/SmartDashboard/Drive/Differential/Dist To Hub (m)",
@@ -123,27 +55,10 @@
             }
           },
           {
-            "title": "Connected",
-            "x": 0.0,
-            "y": 350.0,
-            "width": 150.0,
-            "height": 125.0,
-            "type": "Boolean Box",
-            "properties": {
-              "topic": "/SmartDashboard/Vision/Camera/VISION_FRONT/Connected",
-              "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4283215696,
-              "false_color": 4294198070,
-              "true_icon": "None",
-              "false_icon": "None"
-            }
-          },
-          {
             "title": "Best Target ID",
-            "x": 150.0,
-            "y": 350.0,
-            "width": 300.0,
+            "x": 175.0,
+            "y": 325.0,
+            "width": 175.0,
             "height": 125.0,
             "type": "Large Text Display",
             "properties": {
@@ -153,16 +68,230 @@
             }
           },
           {
-            "title": "Best Target Distance",
-            "x": 450.0,
-            "y": 350.0,
+            "title": "Joystick Inverted",
+            "x": 1200.0,
+            "y": 450.0,
+            "width": 150.0,
+            "height": 125.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Drive/Differential/Inverted",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4289374890,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Total Targets",
+            "x": 0.0,
+            "y": 325.0,
+            "width": 175.0,
+            "height": 125.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/Vision/Total Targets",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "Climber (degrees)",
+            "x": 800.0,
+            "y": 450.0,
             "width": 150.0,
             "height": 125.0,
             "type": "Large Text Display",
             "properties": {
-              "topic": "/SmartDashboard/Vision/Camera/VISION_FRONT/Best Target Distance",
+              "topic": "/SmartDashboard/Climber/Position (degrees)",
               "period": 0.06,
               "data_type": "double"
+            }
+          },
+          {
+            "title": "Climber At Home",
+            "x": 350.0,
+            "y": 450.0,
+            "width": 150.0,
+            "height": 125.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Climber/At Home Position",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4289374890,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "At Lower Limit",
+            "x": 650.0,
+            "y": 450.0,
+            "width": 150.0,
+            "height": 125.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Climber/At Lower Limit",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4289374890,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "At Upper Limit",
+            "x": 500.0,
+            "y": 450.0,
+            "width": 150.0,
+            "height": 125.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Climber/At Upper Limit",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4289374890,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Match Time",
+            "x": 0.0,
+            "y": 450.0,
+            "width": 350.0,
+            "height": 125.0,
+            "type": "Match Time",
+            "properties": {
+              "topic": "/SmartDashboard/Match Time",
+              "period": 0.06,
+              "data_type": "double",
+              "time_display_mode": "Minutes and Seconds",
+              "red_start_time": 20,
+              "yellow_start_time": 30
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Autonomous",
+      "grid_layout": {
+        "layouts": [
+          {
+            "title": "3. Adjust Starting Position",
+            "x": 300.0,
+            "y": 200.0,
+            "width": 400.0,
+            "height": 375.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "Angle Error (deg)",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Large Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/Auto/AngleError (deg)",
+                  "period": 0.06,
+                  "data_type": "double"
+                }
+              },
+              {
+                "title": "X - Forward/Back Error (m)",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Large Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/Auto/XError (m)",
+                  "period": 0.06,
+                  "data_type": "double"
+                }
+              },
+              {
+                "title": "Y - Left/Right Error (m)",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Large Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/Auto/YError (m)",
+                  "period": 0.06,
+                  "data_type": "double"
+                }
+              },
+              {
+                "title": "Robot In Position",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Boolean Box",
+                "properties": {
+                  "topic": "/SmartDashboard/Auto/RobotInPosition",
+                  "period": 0.06,
+                  "data_type": "boolean",
+                  "true_color": 4283215696,
+                  "false_color": 4294198070,
+                  "true_icon": "None",
+                  "false_icon": "None"
+                }
+              }
+            ]
+          }
+        ],
+        "containers": [
+          {
+            "title": "2. Choose Auto Delay",
+            "x": 900.0,
+            "y": 50.0,
+            "width": 200.0,
+            "height": 150.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto Delay",
+              "period": 0.06,
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Gyro",
+            "x": 700.0,
+            "y": 200.0,
+            "width": 400.0,
+            "height": 375.0,
+            "type": "Gyro",
+            "properties": {
+              "topic": "/SmartDashboard/Drive/Gyro",
+              "period": 0.06,
+              "counter_clockwise_positive": true
+            }
+          },
+          {
+            "title": "1. Choose Auto Command",
+            "x": 300.0,
+            "y": 50.0,
+            "width": 600.0,
+            "height": 150.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto Command",
+              "period": 0.06,
+              "sort_options": false
             }
           }
         ]
@@ -184,18 +313,18 @@
             },
             "children": [
               {
-                "title": "At Upper Limit",
+                "title": "At Home Position",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 150.0,
                 "height": 150.0,
                 "type": "Boolean Box",
                 "properties": {
-                  "topic": "/SmartDashboard/Climber/At Upper Limit",
+                  "topic": "/SmartDashboard/Climber/At Home Position",
                   "period": 0.06,
                   "data_type": "boolean",
                   "true_color": 4283215696,
-                  "false_color": 4289506476,
+                  "false_color": 4294198070,
                   "true_icon": "None",
                   "false_icon": "None"
                 }
@@ -212,20 +341,37 @@
                   "period": 0.06,
                   "data_type": "boolean",
                   "true_color": 4283215696,
-                  "false_color": 4289506476,
+                  "false_color": 4294198070,
                   "true_icon": "None",
                   "false_icon": "None"
                 }
               },
               {
-                "title": "Position (rotations)",
+                "title": "At Upper Limit",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Boolean Box",
+                "properties": {
+                  "topic": "/SmartDashboard/Climber/At Upper Limit",
+                  "period": 0.06,
+                  "data_type": "boolean",
+                  "true_color": 4283215696,
+                  "false_color": 4294198070,
+                  "true_icon": "None",
+                  "false_icon": "None"
+                }
+              },
+              {
+                "title": "Position (degrees)",
                 "x": 0.0,
                 "y": 0.0,
                 "width": 150.0,
                 "height": 150.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/SmartDashboard/Climber/Position (rotations)",
+                  "topic": "/SmartDashboard/Climber/Position (degrees)",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": false
@@ -271,7 +417,7 @@
                   "period": 0.06,
                   "data_type": "boolean",
                   "true_color": 4283215696,
-                  "false_color": 4289506476,
+                  "false_color": 4294198070,
                   "true_icon": "None",
                   "false_icon": "None"
                 }
@@ -342,9 +488,9 @@
           },
           {
             "title": "Launcher At Speed",
-            "x": 600.0,
+            "x": 1025.0,
             "y": 300.0,
-            "width": 150.0,
+            "width": 300.0,
             "height": 150.0,
             "type": "Boolean Box",
             "properties": {
@@ -387,9 +533,9 @@
           },
           {
             "title": "Save Tuning Point",
-            "x": 750.0,
+            "x": 675.0,
             "y": 300.0,
-            "width": 275.0,
+            "width": 350.0,
             "height": 150.0,
             "type": "Command",
             "properties": {
@@ -403,7 +549,7 @@
             "title": "Test Tuned Shot",
             "x": 325.0,
             "y": 300.0,
-            "width": 275.0,
+            "width": 350.0,
             "height": 150.0,
             "type": "Command",
             "properties": {

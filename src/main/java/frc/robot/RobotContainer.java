@@ -4,14 +4,17 @@
 
 package frc.robot;
 
+import java.util.List;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -30,18 +33,22 @@ import frc.robot.subsystems.drive.DifferentialSubsystem;
  */
 public class RobotContainer {
   // Initialize our controllers
-  final CommandXboxController driverXbox = new CommandXboxController(0);
+  private final CommandXboxController driverXbox = new CommandXboxController(0);
    
   // The robot's subsystems are defined here...
   private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
   private final FeedbackSubsystem feedbackSubsystem = new FeedbackSubsystem(driverXbox);
   private final FuelSubsystem fuelSubsystem = new FuelSubsystem();
-  private final VisionSubsystem visionSubsystem = new VisionSubsystem();
-  private final DifferentialSubsystem driveSubsystem = new DifferentialSubsystem(visionSubsystem);
+  private final DifferentialSubsystem driveSubsystem = new DifferentialSubsystem();
+  @SuppressWarnings("unused")
+  private final VisionSubsystem visionSubsystem = new VisionSubsystem(driveSubsystem::addVisionMeasurement);
 
   // Auto choosers
-  private SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
-  private SendableChooser<Command> delayCommandChooser = new SendableChooser<>();
+  private SendableChooser<String> autoChooser = new SendableChooser<>();
+  private SendableChooser<Command> delayChooser = new SendableChooser<>();
+  
+  // Cache the selected auto to avoid repeatedly loading path files while disabled
+  private PathPlannerAuto selectedAuto = null;
 
   /** 
    * The container for the robot. 
@@ -90,30 +97,33 @@ public class RobotContainer {
    */
   private void configureAutos() {
     // Build the auto chooser and add it to the dashboard
-    // This will use Commands.none() as the default option.
-    autoCommandChooser = AutoBuilder.buildAutoChooserWithOptionsModifier(
-      (stream) -> DriverStation.isTest()
-        ? stream // in test, show all autos
-        : stream.filter(auto -> !auto.getName().toLowerCase().startsWith("test")) // in comp, filter out test autos
-    );
+    autoChooser.setDefaultOption("No auto", "");
+    List<String> autoNames = AutoBuilder.getAllAutoNames();
+    for (String autoName : autoNames) {
+      // add each auto to the chooser
+      autoChooser.addOption(autoName, autoName);
+
+      // pre-load each auto to catch any errors and cache the paths
+      new PathPlannerAuto(autoName).cancel();
+    }
     
     // Add auto chooser to dashboard
-    SmartDashboard.putData("Auto Command", autoCommandChooser);
+    SmartDashboard.putData("Auto Command", autoChooser);
 
     // Configure the available auto delay options
-    delayCommandChooser.setDefaultOption("No delay", Commands.none());
-    delayCommandChooser.addOption("1.0 second", Commands.waitSeconds(1.0));
-    delayCommandChooser.addOption("1.5 seconds", Commands.waitSeconds(1.5));
-    delayCommandChooser.addOption("2.0 seconds", Commands.waitSeconds(2.0));
-    delayCommandChooser.addOption("2.5 seconds", Commands.waitSeconds(2.5));
-    delayCommandChooser.addOption("3.0 seconds", Commands.waitSeconds(3.0));
-    delayCommandChooser.addOption("3.5 seconds", Commands.waitSeconds(3.5));
-    delayCommandChooser.addOption("4.0 seconds", Commands.waitSeconds(4.0));
-    delayCommandChooser.addOption("4.5 seconds", Commands.waitSeconds(4.5));
-    delayCommandChooser.addOption("5.0 seconds", Commands.waitSeconds(5.0));
+    delayChooser.setDefaultOption("No delay", Commands.none());
+    delayChooser.addOption("1.0 second", Commands.waitSeconds(1.0));
+    delayChooser.addOption("1.5 seconds", Commands.waitSeconds(1.5));
+    delayChooser.addOption("2.0 seconds", Commands.waitSeconds(2.0));
+    delayChooser.addOption("2.5 seconds", Commands.waitSeconds(2.5));
+    delayChooser.addOption("3.0 seconds", Commands.waitSeconds(3.0));
+    delayChooser.addOption("3.5 seconds", Commands.waitSeconds(3.5));
+    delayChooser.addOption("4.0 seconds", Commands.waitSeconds(4.0));
+    delayChooser.addOption("4.5 seconds", Commands.waitSeconds(4.5));
+    delayChooser.addOption("5.0 seconds", Commands.waitSeconds(5.0));
     
     // Add delay chooser to dashboard
-    SmartDashboard.putData("Auto Delay", delayCommandChooser);
+    SmartDashboard.putData("Auto Delay", delayChooser);
   }
 
   /**
@@ -123,12 +133,12 @@ public class RobotContainer {
    * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
-  private void configureBindings() {   
+  private void configureBindings() {
     // manually reset odometry
-    driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand().ignoringDisable(true));
+    driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand());
 
-    // show team colors
-    driverXbox.back().onTrue(feedbackSubsystem.teamColorsCommand().ignoringDisable(true));
+    // toggles the drive controls inversion (for climbing) when the back button is pressed
+    driverXbox.back().onTrue(driveSubsystem.toggleInvertControlsCommand());
 
     // climb up while holding Y button
     driverXbox.y().whileTrue(climberSubsystem.upCommand());
@@ -175,30 +185,61 @@ public class RobotContainer {
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return Commands.sequence(
-      delayCommandChooser.getSelected(), // run the selected delay command
-      autoCommandChooser.getSelected()   // then run the selected auto command
-    );
+    // get the selected auto from the chooser if it 
+    // wasn't already cached in getStartingPose()
+    if (selectedAuto == null) {
+      String autoName = autoChooser.getSelected();
+      if (autoName != null && !autoName.isEmpty()) {
+        selectedAuto = new PathPlannerAuto(autoName);
+      }
+    }
+
+    // get the selected auto, this was cached in getStartingPose() 
+    // to avoid repeatedly loading path files while disabled
+    Command autoCommand = selectedAuto != null ? selectedAuto : Commands.none();
+    
+    // get the selected delay command and then call the selected auto
+    return delayChooser.getSelected().andThen(autoCommand);
   }
 
   /**
-   * Toggle the motor brake mode
-   * @param brake True to brake or false to coast
+   * Use this to pass the starting pose to the main {@link Robot} class.
+   * @return the starting pose of the selected autonomous command
    */
-  public void setMotorBrake(boolean brake) {
-    CommandScheduler.getInstance().schedule(driveSubsystem.setMotorBrakeCommand(brake));
+  public Pose2d getStartingPose() {
+    // get the name of the selected auto from the chooser
+    String autoName = autoChooser.getSelected();
+
+    // if no auto is selected, return a default pose at the origin
+    if (autoName == null || autoName.isEmpty()) {
+      return new Pose2d();
+    }
+
+    // cache the selected auto to avoid repeatedly loading path files while disabled
+    if (selectedAuto == null || !autoName.equals(selectedAuto.getName())) {
+      selectedAuto = new PathPlannerAuto(autoName);
+    }
+
+    // return the cached starting pose
+    return selectedAuto.getStartingPose();
   }
 
   /**
-   * Use this to schedule scoring shift feedback based
-   * on the game data passed from the DriverStation.
-   * @param gameData the game-specific message from the DriverStation
+   * Use this to pass the drive subsystem to the main {@link Robot} class, 
+   * for use in the Robot's periodic methods.
    */
-  public void scheduleScoringShiftCommand(char inactiveAlliance) {
-    CommandScheduler.getInstance().schedule(feedbackSubsystem.scoringShiftCommand(inactiveAlliance));
+  public DifferentialSubsystem getDriveSubsystem() {
+    return driveSubsystem;
+  }
+
+  /**
+   * Use this to pass the feedback subsystem to the main {@link Robot} class, 
+   * for use in the Robot's periodic methods.
+   */
+  public FeedbackSubsystem getFeedbackSubsystem() {
+    return feedbackSubsystem;
   }
 }

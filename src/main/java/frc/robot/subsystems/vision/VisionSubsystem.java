@@ -16,7 +16,6 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -29,56 +28,27 @@ import frc.robot.util.Utils;
  * caches the results for later use by the subsystem.
  */
 public class VisionSubsystem extends SubsystemBase {
-  // Vision measurement data class
-  public static class VisionMeasurement {
-    private final Pose2d pose;
-    private final double timestampSeconds;
-    private final double[] standardDeviations;
-
-    public VisionMeasurement(Pose2d pose, double timestampSeconds, double[] standardDeviations) {
-      this.pose = pose;
-      this.timestampSeconds = timestampSeconds;
-      this.standardDeviations = standardDeviations;
-    }
-
-    /**
-     * Gets the estimated pose
-     * @return
-     */
-    public Pose2d getPose() {
-      return pose;
-    }
-
-    /**
-     * Gets the timestamp of the measurement
-     * @return
-     */
-    public double getTimestampSeconds() {
-      return timestampSeconds;
-    }
-
-    /**
-     * Gets the standard deviations for x, y, and theta
-     * @return
-     */
-    public double[] getStandardDeviations() {
-      return standardDeviations.clone();
-    }
+  // Functional interface for consuming vision measurements (pose, timestamp, stdDevs)
+  // This allows the VisionSubsystem to push measurements to the drive subsystem 
+  // without tight coupling
+  @FunctionalInterface
+  public interface VisionMeasurementConsumer {
+    void accept(Pose2d pose, double timestamp, double[] stdDevs);
   }
 
-  // Camera data storage
+  // Vision measurement consumer (injected from drive subsystem for pose estimator updates)
+  private final VisionMeasurementConsumer visionConsumer;
+
+  // Camera object storage
   private final List<Camera> cameras = new ArrayList<>();
-
-  // Latest vision measurements (updated each periodic cycle)
-  private final List<VisionMeasurement> latestMeasurements = new ArrayList<>();
-
-  // Logging
-  private double lastTargetLogTimestamp = 0;
 
   /**
    * Creates a new VisionSubsystem
    */
-  public VisionSubsystem() {
+  public VisionSubsystem(VisionMeasurementConsumer visionConsumer) {
+    // Store the vision consumer for pose estimator updates
+    this.visionConsumer = visionConsumer;
+
     // Get the defined camera configurations
     HashMap<String, Transform3d> configs = VisionConstants.kCameraConfigs;
     
@@ -135,9 +105,11 @@ public class VisionSubsystem extends SubsystemBase {
    * Update vision measurements from cached camera data
    */
   private void updateVisionMeasurements() {
-    // Clear previous measurements
-    latestMeasurements.clear();
-    
+    // If vision is not enabled, skip processing
+    if (!isEnabled()) { 
+      return;
+    }
+
     // Process each camera's cached unread results
     for (Camera camera : cameras) {
       try {
@@ -160,54 +132,37 @@ public class VisionSubsystem extends SubsystemBase {
           // Get estimated pose
           EstimatedRobotPose estimate = poseResult.get();
           
+          // Skip if estimate is invalid
+          if (estimate == null || estimate.estimatedPose == null) {
+            continue;
+          }
+          
           // Skip further processing if the pose estimate is not valid
           if (!isValidPose(result, estimate)) continue;
           
           // Calculate standard deviations
           double[] stdDevs = calculateStandardDeviations(result);
-          
-          // Create measurement
-          VisionMeasurement measurement = new VisionMeasurement(
+
+          // Push vision measurement to drive subsystem via the vision consumer callback
+          this.visionConsumer.accept(
             estimate.estimatedPose.toPose2d(),
             estimate.timestampSeconds,
             stdDevs
           );
-          
-          // Ensure vision measurement is valid
-          if (
-            measurement.getPose() == null || 
-            measurement.getStandardDeviations() == null ||
-            measurement.getStandardDeviations().length != 3
-          ) {
-            continue;
-          }
-
-          // Add to latest measurements
-          // These measurements will be read by the drive subsystem and
-          // added to the pose estimator in the next cycle.
-          latestMeasurements.add(measurement);
-          
-          // Log targets periodically (only for the most recent result)
-          if (result == camera.getCachedResults().get(camera.getCachedResults().size() - 1)) {
-            logTargets(result, camera.getName());
-          }
-        }          
+        }
       } catch (Exception e) {
         Utils.logError("Error processing vision for " + camera.getName() + ": " + e.getMessage());
       }
     }
-    
-    // Sort measurements by timestamp to ensure chronological processing
-    latestMeasurements.sort((a, b) -> Double.compare(a.getTimestampSeconds(), b.getTimestampSeconds()));
   }
 
   /**
    * Validates a pose estimate to reject obviously incorrect measurements
    * @param result The photon camera pipeline result validate
-   * @param estimatedPose The estimated robot pose from the camera
+   * @param estimate The estimated robot pose from the camera
    * @return True if the pose is valid
    */
-  private boolean isValidPose(PhotonPipelineResult result, EstimatedRobotPose estimatedPose) {
+  private boolean isValidPose(PhotonPipelineResult result, EstimatedRobotPose estimate) {
     // Check for single tag estimates
     if (result.getTargets().size() == 1) {
       // Get the target
@@ -225,7 +180,7 @@ public class VisionSubsystem extends SubsystemBase {
     }
     
     // Get the 2D pose for boundary checks
-    Pose2d pose2d = estimatedPose.estimatedPose.toPose2d();
+    Pose2d pose2d = estimate.estimatedPose.toPose2d();
     
     // Check if pose is within field boundaries
     if (!isPoseOnField(pose2d)) {
@@ -233,7 +188,7 @@ public class VisionSubsystem extends SubsystemBase {
     }
     
     // Check Z coordinate (robot should be on the ground)
-    double z = estimatedPose.estimatedPose.getZ();
+    double z = estimate.estimatedPose.getZ();
     if (Math.abs(z) > VisionConstants.kZMargin) {
       return false;
     }
@@ -310,20 +265,6 @@ public class VisionSubsystem extends SubsystemBase {
     return new double[] {xyStdDev, xyStdDev, thetaStdDev};
   }
 
-  /**
-   * Log target information periodically
-   * @param result The photon camera pipeline result to log
-   * @param cameraName The name of the camera
-   */
-  private void logTargets(PhotonPipelineResult result, String cameraName) {
-    double currentTime = Timer.getFPGATimestamp();    
-    if (currentTime - lastTargetLogTimestamp > VisionConstants.kTargetLogTimeSeconds) {
-      List<Integer> ids = result.getTargets().stream().map(PhotonTrackedTarget::getFiducialId).toList();
-      Utils.logInfo(cameraName + " detected " + result.getTargets().size() + " targets: " + ids);
-      lastTargetLogTimestamp = currentTime;
-    }
-  }
-
   // ==================== Public state accessors ====================
 
   /**
@@ -332,15 +273,14 @@ public class VisionSubsystem extends SubsystemBase {
    * @return True if the pose is on the field
    */
   public boolean isPoseOnField(Pose2d pose) {
-    if (
-      pose.getX() < -VisionConstants.kFieldBorderMargin || 
-      pose.getX() > FieldConstants.kFieldLengthMeters + VisionConstants.kFieldBorderMargin ||
-      pose.getY() < -VisionConstants.kFieldBorderMargin || 
-      pose.getY() > FieldConstants.kFieldWidthMeters + VisionConstants.kFieldBorderMargin
-    ) {
+    if (pose == null) {
       return false;
     }
-    return true;
+    
+    return pose.getX() >= -VisionConstants.kFieldBorderMargin && 
+           pose.getX() <= FieldConstants.kFieldLengthMeters + VisionConstants.kFieldBorderMargin &&
+           pose.getY() >= -VisionConstants.kFieldBorderMargin && 
+           pose.getY() <= FieldConstants.kFieldWidthMeters + VisionConstants.kFieldBorderMargin;
   }
 
   /**
@@ -352,14 +292,6 @@ public class VisionSubsystem extends SubsystemBase {
     return cameras.stream()
       .filter(camera -> camera.getName().equals(cameraName))
       .findFirst();
-  }
-
-  /**
-   * Gets the latest vision measurements from all cameras
-   * @return List of vision measurements (from current periodic cycle)
-   */
-  public List<VisionMeasurement> getLatestMeasurements() {
-    return new ArrayList<>(latestMeasurements);
   }
 
   /**
@@ -428,19 +360,6 @@ public class VisionSubsystem extends SubsystemBase {
   }
 
   /**
-   * Gets the current buffer size for a specific camera (from cached data)
-   * @param cameraName Name of the camera
-   * @return Number of unread results in buffer (from last cache update)
-   */
-  public int getUnreadResultCount(String cameraName) {
-    return cameras.stream()
-      .filter(camera -> camera.getName().equals(cameraName))
-      .findFirst()
-      .map(camera -> camera.getCachedResults().size())
-      .orElse(0);
-  }
-
-  /**
    * Gets the most recent result for a specific camera (from cached data)
    * @param cameraName Name of the camera
    * @return Most recent PhotonPipelineResult, or empty result if camera not found
@@ -461,7 +380,6 @@ public class VisionSubsystem extends SubsystemBase {
     builder.addBooleanProperty("Enabled", this::isEnabled, null);
     builder.addBooleanProperty("Has Targets", this::hasTargets, null);
     builder.addDoubleProperty("Total Targets", this::getTotalTargetCount, null);
-    builder.addIntegerProperty("Measurements", () -> latestMeasurements.size(), null);
     
     // Individual camera status - call getLatestResult() in the lambda
     for (Camera camera : cameras) {
@@ -486,15 +404,5 @@ public class VisionSubsystem extends SubsystemBase {
         return r.hasTargets() ? r.getBestTarget().getPoseAmbiguity() : 0;
       }, null);
     }
-    
-    // Latest measurements
-    builder.addStringProperty("Latest Pose", () -> {
-      if (latestMeasurements.isEmpty()) return "None";
-      return latestMeasurements.get(latestMeasurements.size() - 1).getPose().toString();
-    }, null);
-    builder.addDoubleProperty("Latest Timestamp", () -> {
-      if (latestMeasurements.isEmpty()) return 0;
-      return latestMeasurements.get(latestMeasurements.size() - 1).getTimestampSeconds();
-    }, null);
   }
 }

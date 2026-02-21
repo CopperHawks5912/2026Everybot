@@ -47,7 +47,13 @@ public final class DifferentialConstants {
   /**
    * Wheel circumference in meters
    */
-  public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
+  public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;  
+  
+  /**
+   * Rev through bore encoder v2 resolution (ticks per motor revolution)
+   * Rev through bore encoder v2 encoders report 8192 counts per revolution by default
+   */
+  public static final int kEncoderTicksPerRevolution = 8192;
   
   /**
    * Gear ratio from motor to wheel
@@ -57,16 +63,10 @@ public final class DifferentialConstants {
   public static final double kGearRatio = 8.45; // TODO: Check your gearbox
   
   /**
-   * Rev through bore encoder v2 resolution (ticks per motor revolution)
-   * Rev through bore encoder v2 encoders report 8192 counts per revolution by default
-   */
-  public static final int kEncoderTicksPerRevolution = 8192;
-  
-  /**
    * Position conversion factor: converts encoder ticks to meters
-   * Formula: (wheel circumference) / (gear ratio * encoder ticks per rev)
+   * Formula: wheel circumference / gear ratio
    */
-  public static final double kPositionConversionFactor = kWheelCircumferenceMeters / (kGearRatio * kEncoderTicksPerRevolution);
+  public static final double kPositionConversionFactor = kWheelCircumferenceMeters / kGearRatio;
   
   /**
    * Velocity conversion factor: converts encoder ticks/minute to meters/second

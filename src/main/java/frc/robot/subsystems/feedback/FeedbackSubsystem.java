@@ -184,6 +184,7 @@ public class FeedbackSubsystem extends SubsystemBase {
           gradientPosition
       );
       
+      // Set the LED color
       ledBuffer.setLED(i, interpolatedColor);
     }
   }
@@ -205,8 +206,8 @@ public class FeedbackSubsystem extends SubsystemBase {
   /**
    * Scoring shift pattern that indicates which alliance is allowed to score.
    * Sets all LEDs to our alliance colour when our scoring shift is activate.
-   * Blinks our alliance colour for the last 5 seconds of active hub.
-   * Turns off the LEDs when it is not our turn to score.
+   * Blinks the appropriate colour for the last 5 seconds of each hub shift.
+   * Sets LEDs to yellow (collect fuel) when it is not our turn to score.
    */
   private void scoringShiftPattern() {
     // current remaining match time
@@ -214,6 +215,9 @@ public class FeedbackSubsystem extends SubsystemBase {
 
     // set our alliance color
     Color allianceColor = Utils.isRedAlliance() ? Color.kRed : Color.kBlue;
+
+    // color to indicate inactive hub (collect fuel)
+    Color inactiveColor = Color.kYellow;
 
     // autonomous period 20 seconds (both alliances can score)
     // set to 'A' in Robot.autonomousInit()
@@ -232,14 +236,14 @@ public class FeedbackSubsystem extends SubsystemBase {
       }
     }
 
-    // Check that we have valid game data
+    // check that we have valid game data
     if (inactiveAlliance == 'R' || inactiveAlliance == 'B') {
       // check if our alliance is inactive for the 1st shift
       boolean isInactiveFirst = 
         (inactiveAlliance == 'R' && Utils.isRedAlliance()) ||
         (inactiveAlliance == 'B' && !Utils.isRedAlliance());
 
-      // Shift data from 2026 FRC Game Manual
+      // shift data from 2026 FRC Game Manual
       // https://firstfrc.blob.core.windows.net/frc2026/Manual/2026GameManual.pdf
       if (time <= 140 && time > 135) {
         // transition shift (both alliances can score)
@@ -251,35 +255,35 @@ public class FeedbackSubsystem extends SubsystemBase {
       }
       else if (time <= 130 && time > 110) {
         // shift 1
-        setAllLEDs(isInactiveFirst ? Color.kBlack : allianceColor);
+        setAllLEDs(isInactiveFirst ? inactiveColor : allianceColor);
       }
       else if (time <= 110 && time > 105) {
         // shift 1 - last 5 seconds
-        pulsePattern(isInactiveFirst ? Color.kBlack : allianceColor, 0.35);
+        pulsePattern(isInactiveFirst ? inactiveColor : allianceColor, 0.35);
       }
       else if (time <= 105 && time > 85) {
         // shift 2
-        setAllLEDs(isInactiveFirst ? allianceColor : Color.kBlack);
+        setAllLEDs(isInactiveFirst ? allianceColor : inactiveColor);
       }
       else if (time <= 85 && time > 80) {
         // shift 2 - last 5 seconds
-        pulsePattern(isInactiveFirst ? allianceColor : Color.kBlack, 0.35);
+        pulsePattern(isInactiveFirst ? allianceColor : inactiveColor, 0.35);
       }
       else if (time <= 80 && time > 60) {
         // shift 3
-        setAllLEDs(isInactiveFirst ? Color.kBlack : allianceColor);
+        setAllLEDs(isInactiveFirst ? inactiveColor : allianceColor);
       }
       else if (time <= 60 && time > 55) {
         // shift 3 - last 5 seconds
-        pulsePattern(isInactiveFirst ? Color.kBlack : allianceColor, 0.35);
+        pulsePattern(isInactiveFirst ? inactiveColor : allianceColor, 0.35);
       }
       else if (time <= 55 && time > 35) {
         // shift 4
-        setAllLEDs(isInactiveFirst ? allianceColor : Color.kBlack);
+        setAllLEDs(isInactiveFirst ? allianceColor : inactiveColor);
       }
       else if (time <= 35 && time > 30) {
         // shift 4 - last 5 seconds
-        pulsePattern(isInactiveFirst ? allianceColor : Color.kBlack, 0.35);
+        pulsePattern(isInactiveFirst ? allianceColor : inactiveColor, 0.35);
       }
       else if (time <= 30 && time > 5) {
         // end game (both alliances can score)
@@ -324,7 +328,9 @@ public class FeedbackSubsystem extends SubsystemBase {
    * @return Command that sets the LED display
    */
   public Command setDisplayCommand(DisplayMode mode) {
-    return runOnce(() -> setDisplayMode(mode)).withName("SetLED_" + mode.name());
+    return runOnce(() -> setDisplayMode(mode))
+      .ignoringDisable(true)
+      .withName("SetLED_" + mode.name());
   }
   
   /**
