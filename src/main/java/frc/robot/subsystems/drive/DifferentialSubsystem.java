@@ -111,7 +111,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     // Create the gyro
     gyro = new Navx(CANConstants.kGyroID);
 
-    // Disable certain data to optimize BUS saturation
+    // Disable certain gyro messages to optimize BUS saturation
     gyro.enableOptionalMessages(
       true,
       true,
