@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.drive;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
@@ -24,8 +25,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import com.studica.frc.AHRS;
-import com.studica.frc.AHRS.NavXComType;
+import com.studica.frc.Navx;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
@@ -69,7 +69,7 @@ public class DifferentialSubsystem extends SubsystemBase {
   private final RelativeEncoder leftEncoder;
   private final RelativeEncoder rightEncoder;
   private final DifferentialDrive drive;
-  private final AHRS gyro;
+  private final Navx gyro;
 
   private final DifferentialDriveKinematics kinematics;
   private final DifferentialDrivePoseEstimator poseEstimator;
@@ -109,7 +109,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     rSpeedLimiter = new SlewRateLimiter(DifferentialConstants.kRotationalSlewRateLimit);
 
     // Create the gyro
-    gyro = new AHRS(NavXComType.kMXP_SPI);
+    gyro = new Navx(CANConstants.kGyroID);
 
     // Initialize drive motors with correct MotorType (we're using brushed CIM motors)
     leftLeaderMotor = new SparkMax(CANConstants.kLeftDifferentialLeaderMotorID, MotorType.kBrushed);
@@ -214,7 +214,6 @@ public class DifferentialSubsystem extends SubsystemBase {
 
     // Initialize dashboard
     SmartDashboard.putData("Drive/Field", field2d);
-    SmartDashboard.putData("Drive/Gyro", gyro);
     SmartDashboard.putData("Drive/Differential", this);
     
     // Output initialization progress
@@ -383,7 +382,7 @@ public class DifferentialSubsystem extends SubsystemBase {
    */
   private void resetOdometry() {
     // Reset the gyro
-    gyro.reset();
+    gyro.resetYaw();
 
     // Reset the encoders
     resetEncoders();
@@ -818,7 +817,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Right Position (m)", () -> Utils.showDouble(rightEncoder.getPosition()), null);
     builder.addDoubleProperty("Left Velocity (mps)", () -> Utils.showDouble(leftEncoder.getVelocity()), null);
     builder.addDoubleProperty("Right Velocity (mps)", () -> Utils.showDouble(rightEncoder.getVelocity()), null);
-    builder.addDoubleProperty("Gyro Angle (deg)", () -> Utils.showDouble(gyro.getAngle()), null);
+    builder.addDoubleProperty("Gyro Angle (deg)", () -> Utils.showDouble(gyro.getAngle().in(Degrees)), null);
     builder.addDoubleProperty("Dist To Hub (m)", () -> Utils.showDouble(getDistanceToAllianceHub()), null);
     builder.addDoubleProperty("Voltage (V)", () -> Utils.showDouble(getVoltage()), null);
     builder.addDoubleProperty("Current (A)", () -> Utils.showDouble(getCurrent()), null);

@@ -40,6 +40,9 @@ public final class Constants {
     public static final int kLeftDifferentialFollowerMotorID = 5;
     public static final int kRightDifferentialLeaderMotorID = 6;
     public static final int kRightDifferentialFollowerMotorID = 7;
+
+    // NavX 3 gyro
+    public static final int kGyroID = 8;
   }
   
   /**
