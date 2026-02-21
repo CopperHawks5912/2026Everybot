@@ -347,7 +347,7 @@ public class VisionSubsystem extends SubsystemBase {
    * @return True if vision is enabled
    */
   public boolean isEnabled() {
-    return !cameras.isEmpty();
+    return VisionConstants.kEnableVision && !cameras.isEmpty();
   }
 
   /**
