@@ -704,9 +704,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     })
     .andThen(run(() -> {
       // Calculate uses the previously set goal
-      double rotationSpeed = aimPIDController.calculate(
-        getPose().getRotation().getRadians()
-      );
+      double rotationSpeed = aimPIDController.calculate(getPose().getRotation().getRadians());
       
       // Rotate the robot in place to aim at the hub (0 forward speed, only rotation)
       driveArcade(0.0, rotationSpeed);
