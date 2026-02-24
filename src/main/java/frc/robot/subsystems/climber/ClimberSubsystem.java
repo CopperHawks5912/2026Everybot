@@ -36,6 +36,9 @@ public class ClimberSubsystem extends SubsystemBase {
     
     // Initialize encoder
     climberEncoder = climberMotor.getAlternateEncoder();
+
+    // Reset the encoder (assumes climber starts at the home position)
+    resetEncoder();
     
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
