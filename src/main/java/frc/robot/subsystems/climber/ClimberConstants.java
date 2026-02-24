@@ -20,7 +20,7 @@ public final class ClimberConstants {
    * Example: 10.71:1 gearbox means motor spins 10.71 times per wheel rotation
    * 
    * Our encoder is attached to the outer gear after the gearbox, so we can set
-   * gear ratio to 1.0 since the encoder already accounts for the gearbox reduction
+   * gear ratio to 1.0 since it is measuring the movement of this gear directly.
    */
   public static final double kGearRatio = 1.0; // TODO: Check your gearbox
 
