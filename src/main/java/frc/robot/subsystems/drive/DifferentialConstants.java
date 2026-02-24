@@ -207,7 +207,7 @@ public final class DifferentialConstants {
       kWheelDiameterMeters / 2.0,   // wheel radius (m)
       kMaxSpeedMetersPerSecond,     // max wheel speed (m/s)
       1.19,                // wheel COF
-      DCMotor.getCIM(1),  // drive motors: 1 CIM per side
+      DCMotor.getCIM(1),  // drive motors: 2 CIMs per side but they act like 1 motor with 2x the torque and speed
       60.0,       // current limit (A)
       2                   // number of motors per module
     ),
