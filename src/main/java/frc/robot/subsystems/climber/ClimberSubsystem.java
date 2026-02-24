@@ -127,7 +127,7 @@ public class ClimberSubsystem extends SubsystemBase {
   
   /**
    * Get the current position of the climber
-   * @return Position in rotations
+   * @return Position in degrees
    */
   public double getPosition() {
     return climberEncoder.getPosition();
