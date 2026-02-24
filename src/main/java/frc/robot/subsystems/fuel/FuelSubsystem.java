@@ -198,7 +198,7 @@ public class FuelSubsystem extends SubsystemBase {
 
     // motor output
     feederConfig
-      .smartCurrentLimit(80) // amps
+      .smartCurrentLimit(40) // amps
       .voltageCompensation(12)
       .idleMode(IdleMode.kBrake);
 
