@@ -699,6 +699,8 @@ public class DifferentialSubsystem extends SubsystemBase {
       
       // Calculate rotation speed to aim at the hub using the PID controller.
       // Add Math.PI so the rear-mounted launcher faces the hub.
+      // The PID controller will automatically handle angle wrapping 
+      // and takes the shortest path to the target angle.
       double rotationSpeed = aimPIDController.calculate(
         currentPose.getRotation().getRadians(),
         targetAngle.getRadians() + Math.PI
