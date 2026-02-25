@@ -134,8 +134,11 @@ public class RobotContainer {
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
   private void configureBindings() {
-    // manually reset odometry
-    driverXbox.start().onTrue(driveSubsystem.resetOdometryCommand());
+    // manually reset odometry & climber home position
+    driverXbox.start().onTrue(Commands.parallel(
+      driveSubsystem.resetOdometryCommand(),
+      climberSubsystem.setHomePositionCommand()
+    ));
 
     // toggles the drive controls inversion (for climbing) when the back button is pressed
     driverXbox.back().onTrue(driveSubsystem.toggleInvertControlsCommand());

@@ -261,11 +261,12 @@ public class ClimberSubsystem extends SubsystemBase {
   
   /**
    * Command to reset encoder to zero at current position
-   * Use this when climber is at a known position (e.g., fully retracted)
+   * Use this when climber is at a known position (e.g., at home position)
    * @return Command that resets the encoder
    */
-  public Command resetEncoderCommand() {
+  public Command setHomePositionCommand() {
     return runOnce(this::resetEncoder)
+      .ignoringDisable(true)
       .withName("ResetClimberEncoder");
   }
   
