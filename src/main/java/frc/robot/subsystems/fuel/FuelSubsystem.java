@@ -285,7 +285,7 @@ public class FuelSubsystem extends SubsystemBase {
   
   /**
    * Set launcher motors to a percentage of max power.
-   * Used for non-PID controller intake/eject operations.
+   * Used for non-PID controlled intake/eject operations.
    * @param power Percentage of voltage to apply (-1.0 to 1.0)
    */
   private void setLauncherPower(double power) {
