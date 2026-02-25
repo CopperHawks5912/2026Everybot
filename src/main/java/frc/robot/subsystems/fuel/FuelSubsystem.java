@@ -284,11 +284,11 @@ public class FuelSubsystem extends SubsystemBase {
   // ==================== Internal State Modifiers ====================
   
   /**
-   * Set launcher motors to a percentage of max power
-   * Used for intake/eject operations
+   * Set launcher motors to a percentage of max power.
+   * Used for non-PID controller intake/eject operations.
    * @param power Percentage of voltage to apply (-1.0 to 1.0)
    */
-  private void setIntakeLauncherRoller(double power) {
+  private void setLauncherPower(double power) {
     double clampedPower = MathUtil.clamp(power, -1, 1);
     targetRPM = 0; // Not using velocity control
     leftIntakeLauncherMotor.set(clampedPower);
@@ -296,11 +296,11 @@ public class FuelSubsystem extends SubsystemBase {
   }
   
   /**
-   * Set launcher motors to a specific velocity
-   * Used for launching/shooting operations
+   * Set launcher motors to a specific velocity / RPM.
+   * Used for PID controlled launching/shooting operations.
    * @param rpm RPM to set the intake/launcher motors to
    */
-  private void setLauncherVelocity(double rpm) {
+  private void setLauncherRPM(double rpm) {
     // clamp RPM to valid range (NEO max ~6000 RPM) 
     double clampedRPM = MathUtil.clamp(rpm, 0, 6000); 
 
@@ -349,7 +349,7 @@ public class FuelSubsystem extends SubsystemBase {
       currentRPMEntry.setDouble(testRPM);
       
       // Spin up to test RPM
-      setLauncherVelocity(testRPM);
+      setLauncherRPM(testRPM);
       
       // Feed when at speed
       if (isAtSpeed()) {
@@ -420,7 +420,7 @@ public class FuelSubsystem extends SubsystemBase {
    */
   public Command stopCommand() {
     return runOnce(() -> {
-      setIntakeLauncherRoller(0);
+      setLauncherPower(0);
       setFeederRoller(0);
       targetRPM = 0;
     }).withName("StopIntake");
@@ -432,7 +432,7 @@ public class FuelSubsystem extends SubsystemBase {
    */
   public Command intakeCommand() {
     return run(() -> {
-      setIntakeLauncherRoller(FuelConstants.kIntakeIntakingPercent);
+      setLauncherPower(FuelConstants.kIntakeIntakingPercent);
       setFeederRoller(FuelConstants.kFeederIntakingPercent);
     }).withName("IntakeFuel");
   }
@@ -443,7 +443,7 @@ public class FuelSubsystem extends SubsystemBase {
    */
   public Command ejectCommand() {
     return run(() -> {
-      setIntakeLauncherRoller(-1 * FuelConstants.kIntakeEjectPercent);
+      setLauncherPower(-1 * FuelConstants.kIntakeEjectPercent);
       setFeederRoller(FuelConstants.kFeederLaunchingPercent);
     }).withName("EjectFuel");
   }
@@ -457,7 +457,7 @@ public class FuelSubsystem extends SubsystemBase {
   public Command passCommand() {
     return run(() -> {
       // Spin up to passing speed
-      setLauncherVelocity(FuelConstants.kLauncherPassingRPM);
+      setLauncherRPM(FuelConstants.kLauncherPassingRPM);
       
       // Only feed when at speed - otherwise hold fuel back
       if (isAtSpeed()) {
@@ -486,7 +486,7 @@ public class FuelSubsystem extends SubsystemBase {
         : FuelConstants.kLauncherLaunchingRPM;
       
       // spin up the launcher
-      setLauncherVelocity(rpm);
+      setLauncherRPM(rpm);
       
       // only feed when at speed - otherwise hold fuel back
       if (isAtSpeed()) {
