@@ -40,7 +40,7 @@ public final class FuelConstants {
   public static final double kLauncherKV                    = 0.00167;  // Velocity constant (volts per RPM) - was 1/6000
   public static final double kLauncherKA                    = 0.0;      // Acceleration constant (volts per RPM/s) - usually small for flywheels
   
-   // Note: kV = 1 / free_speed_rpm when battery is at 12V
+  // Note: kV = 1 / free_speed_rpm when battery is at 12V
   // Example: If free speed is 6000 RPM at 12V, then kV = 12/6000 = 0.002 V/(RPM)
   // Or in the units the REV API expects: kV = 1/6000 = 0.00167 (assuming 12V compensation)  
 
