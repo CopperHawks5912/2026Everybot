@@ -298,6 +298,7 @@ public class FuelSubsystem extends SubsystemBase {
   /**
    * Set launcher motors to a specific velocity / RPM.
    * Used for PID controlled launching/shooting operations.
+   * Launching will always be a positive RPM value.
    * @param rpm RPM to set the intake/launcher motors to
    */
   private void setLauncherRPM(double rpm) {
