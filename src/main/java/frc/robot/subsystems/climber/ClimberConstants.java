@@ -11,7 +11,7 @@ package frc.robot.subsystems.climber;
 public final class ClimberConstants {  
   /**
    * Rev through bore encoder v2 resolution (ticks per motor revolution)
-   * Rev through bore encoder v2 encoders report 8192 counts per revolution by default
+   * See: https://revrobotics.ca/rev-11-3174/
    */
   public static final int kEncoderTicksPerRevolution = 8192;
   /**
