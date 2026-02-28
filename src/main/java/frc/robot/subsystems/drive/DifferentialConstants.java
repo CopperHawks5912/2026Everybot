@@ -29,7 +29,8 @@ public final class DifferentialConstants {
   public static final double kTrackLengthMeters = Units.inchesToMeters(18); // TODO: Measure your robot
   
   /**
-   * The robot's mass in kilograms
+   * The robot's mass in kilograms with the bumpers attached and battery installed
+   * 2026 Rebuilt max 52.16 kg / 115 lbs without the battery or bumpers
    */
   public static final double kRobotMassKg = Units.lbsToKilograms(110.0); // TODO: Measure your robot
 
