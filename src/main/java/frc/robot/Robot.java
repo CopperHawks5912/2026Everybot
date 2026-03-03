@@ -18,8 +18,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
-  private boolean wasInAuto;
-  private boolean wasInTeleop;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -63,35 +61,19 @@ public class Robot extends TimedRobot {
    * This function is called once each time the robot enters Disabled mode.
    */
   @Override
-  public void disabledInit() {
-    if (isPostMatch()) {
-      wasInAuto = false;
-      wasInTeleop = false;
-      m_robotContainer.onPostMatch();
-    }
-  }
+  public void disabledInit() {}
 
   /**
    * This function is called periodically while the robot is disabled.
    */
   @Override
-  public void disabledPeriodic() {
-    if (isPreMatch()) {
-      m_robotContainer.onPreMatch();
-    }
-  }
+  public void disabledPeriodic() {}
 
   /**
    * This autonomous runs the autonomous command selected by your {@link RobotContainer} class.
    */
   @Override
   public void autonomousInit() {
-    // Set autonomous tracking flag
-    wasInAuto = true;
-
-    // Run the autonomous init command for all subsystems
-    m_robotContainer.onAutonomousInit();
-
     // get the selected autonomous command
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
@@ -112,9 +94,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopInit() {
-    // Set teleop tracking flag
-    wasInTeleop = true;
-
     // This makes sure that the autonomous stops running when
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
@@ -122,18 +101,13 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-
-    // Run the teleop init command for all subsystems
-    m_robotContainer.onTeleopInit();
   }
 
   /**
    * This function is called periodically during operator control.
    */
   @Override
-  public void teleopPeriodic() {
-    m_robotContainer.onTeleopPeriodic();
-  }
+  public void teleopPeriodic() {}
 
   /**
    * This function is called once each time the robot enters test mode.
@@ -161,20 +135,4 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void simulationPeriodic() {}
-
-  /**
-   * Check if the match has not started yet by seeing if we were not in auto or teleop.
-   * @return true if the match has not started, false otherwise
-   */
-  private boolean isPreMatch() {
-    return !wasInAuto && !wasInTeleop;
-  }
-
-  /**
-   * Check if the match has ended by seeing if we were in teleop and the match time is 0 or less.
-   * @return true if the match has ended, false otherwise
-   */
-  private boolean isPostMatch() {
-    return wasInTeleop;
-  }
 }

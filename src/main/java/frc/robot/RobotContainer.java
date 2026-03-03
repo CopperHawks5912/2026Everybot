@@ -9,6 +9,7 @@ import java.util.List;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.commands.PathfindingCommand;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -51,7 +53,11 @@ public class RobotContainer {
   
   // Cache the selected auto to avoid repeatedly loading path files while disabled
   private PathPlannerAuto selectedAuto = null;
-  private boolean hasGameData = false;
+
+  // Track match state in RobotContainer
+  private boolean wasInAuto = false;
+  private boolean wasInTeleop = false;
+  private char gameData = '?';
 
   /** 
    * The container for the robot. 
@@ -73,6 +79,10 @@ public class RobotContainer {
     // configure our controller bindings
     configureBindings();
 
+    // Preload PathPlanner Path finding 
+    // It's ok to call .schedule() since it's only called once during initialization
+    CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
+   
     // silence joystick warnings during testing
     DriverStation.silenceJoystickConnectionWarning(true);
   }
@@ -187,6 +197,59 @@ public class RobotContainer {
       driverXbox.rightTrigger().whileTrue(fuelSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kForward));
       driverXbox.rightBumper().whileTrue(fuelSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kReverse));
     }
+
+    // ----------------------------------------------
+    // Match phase transition triggers
+    // ----------------------------------------------
+    // pre-match trigger
+    RobotModeTriggers.disabled().and(() -> !wasInAuto && !wasInTeleop).whileTrue(
+      Commands.run(() -> driveSubsystem.updateAutoReadiness(getStartingPose()))
+    );
+
+    // autonomous init trigger
+    RobotModeTriggers.autonomous().onTrue(Commands.parallel(
+      driveSubsystem.autonomousInitCommand(),
+      feedbackSubsystem.scoringShiftCommand('A'),
+      Commands.runOnce(() -> {
+        wasInAuto = true;
+      })
+    ));
+
+    // teleop init trigger
+    RobotModeTriggers.teleop().onTrue(Commands.parallel(
+      driveSubsystem.teleopInitCommand(),
+      Commands.runOnce(() -> {
+        wasInTeleop = true;
+        Elastic.selectTab("Teleop");
+      })
+    ));
+
+    // teleop periodic and no game data yet trigger
+    RobotModeTriggers.teleop().and(() -> gameData == '?').whileTrue(Commands.run(() -> {
+      // Poll for the game data and pass it to the feedback subsystem.
+      // Stop further polling once we have valid game data.
+      String msg = DriverStation.getGameSpecificMessage();
+      if (msg.length() > 0) {
+        char inactiveAlliance = msg.charAt(0);
+        if (inactiveAlliance == 'R' || inactiveAlliance == 'B') {
+          gameData = inactiveAlliance;
+        }
+      }
+    }));
+    RobotModeTriggers.teleop().and(() -> gameData != '?').onTrue(
+      feedbackSubsystem.scoringShiftCommand(gameData)
+    );
+
+    // post-match trigger
+    RobotModeTriggers.disabled().and(() -> wasInTeleop).onTrue(Commands.parallel(
+      driveSubsystem.postMatchCommand(),
+      feedbackSubsystem.teamColorsCommand(),
+      Commands.runOnce(() -> {
+        wasInAuto = false;
+        wasInTeleop = false;
+        gameData = '?';
+      })
+    ));
   }
 
   /**
@@ -231,64 +294,5 @@ public class RobotContainer {
     
     // get the selected delay command and then call the selected auto
     return delayChooser.getSelected().andThen(autoCommand);
-  }
-
-  /**
-   * This function is called periodically before the start of each match.
-   * It can be used to update the dashboard with information about the 
-   * selected autonomous routine, robot pose readiness, etc.
-   */
-  public void onPreMatch() {
-    driveSubsystem.updateAutoReadiness(getStartingPose());
-  }
-
-  /**
-   * This function is called once each time the robot enters autonomous mode.
-   */
-  public void onAutonomousInit() {
-    hasGameData = false;
-    CommandScheduler.getInstance().schedule(
-      driveSubsystem.autonomousInitCommand(),
-      feedbackSubsystem.scoringShiftCommand('A')
-    );
-  }
-
-  /**
-   * This function is called once each time the robot enters teleoperated mode.
-   */
-  public void onTeleopInit() {
-    CommandScheduler.getInstance().schedule(driveSubsystem.teleopInitCommand());
-    Elastic.selectTab("Teleop");
-  }
-
-  /**
-   * This function is called periodically during teleop.
-   */
-  public void onTeleopPeriodic() {
-    // Poll for the game data and pass it to the feedback subsystem.
-    // Stop further polling once we have valid game data.
-    if (!hasGameData) {
-      String gameData = DriverStation.getGameSpecificMessage();
-      if (gameData.length() > 0) {
-        char inactiveAlliance = gameData.charAt(0);
-        if (inactiveAlliance == 'R' || inactiveAlliance == 'B') {
-          hasGameData = true;
-          CommandScheduler.getInstance().schedule(
-            feedbackSubsystem.scoringShiftCommand(inactiveAlliance)
-          );
-        }
-      }
-    }
-  }
-
-  /**
-   * This function is called once at the end of each match.
-   */
-  public void onPostMatch() {
-    hasGameData = false;
-    CommandScheduler.getInstance().schedule(
-      driveSubsystem.postMatchCommand(),
-      feedbackSubsystem.teamColorsCommand()
-    );
   }
 }

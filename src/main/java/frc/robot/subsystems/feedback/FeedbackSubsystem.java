@@ -220,7 +220,6 @@ public class FeedbackSubsystem extends SubsystemBase {
     Color inactiveColor = Color.kYellow;
 
     // autonomous period 20 seconds (both alliances can score)
-    // set to 'A' in RobotContainer.autonomousInit()
     if (inactiveAlliance == 'A') {
       if (time <= 20 && time > 5) {
         // autonomous (both alliances can score)
