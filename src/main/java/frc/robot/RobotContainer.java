@@ -81,6 +81,7 @@ public class RobotContainer {
 
     // Preload PathPlanner Path finding 
     // It's ok to call .schedule() since it's only called once during initialization
+    // Must be called after initializing the AutoBuilder in the drive subsystem
     CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
    
     // silence joystick warnings during testing
