@@ -226,11 +226,9 @@ public class RobotContainer {
 
     // teleop periodic and no game data yet trigger
     RobotModeTriggers.teleop().and(() -> gameData == '?').whileTrue(Commands.run(() -> {
-      // Poll for the game data and pass it to the feedback subsystem.
-      // Stop further polling once we have valid game data.
-      String msg = DriverStation.getGameSpecificMessage();
-      if (msg.length() > 0) {
-        char inactiveAlliance = msg.charAt(0);
+      String data = DriverStation.getGameSpecificMessage();
+      if (data.length() > 0) {
+        char inactiveAlliance = data.charAt(0);
         if (inactiveAlliance == 'R' || inactiveAlliance == 'B') {
           gameData = inactiveAlliance;
         }
