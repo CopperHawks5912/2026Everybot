@@ -224,7 +224,7 @@ public class RobotContainer {
       })
     ));
 
-    // teleop periodic and no game data yet trigger
+    // poll for game data in teleop periodic and no game data yet trigger
     RobotModeTriggers.teleop().and(() -> gameData == '?').whileTrue(Commands.run(() -> {
       String data = DriverStation.getGameSpecificMessage();
       if (data.length() > 0) {
