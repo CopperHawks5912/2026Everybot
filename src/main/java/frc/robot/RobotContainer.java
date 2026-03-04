@@ -203,7 +203,7 @@ public class RobotContainer {
     // Match phase transition triggers
     // ----------------------------------------------
     // pre-match init trigger
-    RobotModeTriggers.disabled().and(() -> !wasInAuto && !wasInTeleop).onTrue(
+    RobotModeTriggers.disabled().and(() -> !wasInAuto && !wasInTeleop && DriverStation.isFMSAttached()).onTrue(
       driveSubsystem.setMotorBrakeCommand(false)
     );
 
