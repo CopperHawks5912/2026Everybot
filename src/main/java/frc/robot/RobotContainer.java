@@ -97,7 +97,7 @@ public class RobotContainer {
    * can be used by name in the PathPlanner GUI.
    */
   public void registerNamedCommands() {
-    NamedCommands.registerCommand("LAUNCH_FUEL", fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub()));
+    NamedCommands.registerCommand("LAUNCH_FUEL", fuelSubsystem.launchCommand(driveSubsystem::getDistanceToAllianceHub));
     NamedCommands.registerCommand("PASS_FUEL", fuelSubsystem.passCommand());
     NamedCommands.registerCommand("INTAKE_FUEL", fuelSubsystem.intakeCommand());
     NamedCommands.registerCommand("EJECT_FUEL", fuelSubsystem.ejectCommand());
@@ -185,7 +185,7 @@ public class RobotContainer {
     // Launch fuel while holding right bumper
     // Automatically calculates distance, spins up, feeds when ready
     driverXbox.rightBumper().whileTrue(
-      fuelSubsystem.launchCommand(() -> driveSubsystem.getDistanceToAllianceHub())
+      fuelSubsystem.launchCommand(driveSubsystem::getDistanceToAllianceHub)
     );
 
     // Override above bindings with bindings to run SysId commands
