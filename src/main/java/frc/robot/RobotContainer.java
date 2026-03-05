@@ -60,8 +60,8 @@ public class RobotContainer {
   private char gameData = '?';
 
   /** 
-   * The container for the robot. 
-   * Contains subsystems, IO devices, and commands. 
+   * The main container constructor for the robot. 
+   * Initializes all the things... 
    */
   public RobotContainer() {
     // set our default driving method (arcade - differential drive)
