@@ -139,7 +139,7 @@ public class DifferentialSubsystem extends SubsystemBase {
     // set up differential drive class
     drive = new DifferentialDrive(leftLeaderMotor, rightLeaderMotor);
 
-    // Initialize PID controllers for driving
+    // Initialize PID controllers for autonomous driving
     leftPIDController = new PIDController(DifferentialConstants.kP, 0, 0);
     rightPIDController = new PIDController(DifferentialConstants.kP, 0, 0);
     feedForward = new SimpleMotorFeedforward(
@@ -148,7 +148,7 @@ public class DifferentialSubsystem extends SubsystemBase {
       DifferentialConstants.kA
     );
 
-    // Initialize PID controller for aiming
+    // Initialize PID controller for auto aiming
     aimPIDController = new ProfiledPIDController(
       DifferentialConstants.kAimP,
       DifferentialConstants.kAimI, 
