@@ -318,7 +318,7 @@ public class FuelSubsystem extends SubsystemBase {
    * Set feeder motor to a percentage of max power.
    * @param power Percentage of voltage to apply (-1.0 to 1.0)
    */
-  private void setFeederRoller(double power) {
+  private void setFeederPower(double power) {
     feederMotor.set(MathUtil.clamp(power, -1, 1));
   }
   
@@ -355,9 +355,9 @@ public class FuelSubsystem extends SubsystemBase {
       
       // Feed when at speed
       if (isAtSpeed()) {
-        setFeederRoller(FuelConstants.kFeederLaunchingPercent);
+        setFeederPower(FuelConstants.kFeederLaunchingPercent);
       } else {
-        setFeederRoller(FuelConstants.kFeederSpinUpPreLaunchPercent);
+        setFeederPower(FuelConstants.kFeederSpinUpPreLaunchPercent);
       }
     }).withName("TestTunedShot");
   }
@@ -423,7 +423,7 @@ public class FuelSubsystem extends SubsystemBase {
   public Command stopCommand() {
     return runOnce(() -> {
       setLauncherPower(0);
-      setFeederRoller(0);
+      setFeederPower(0);
       targetRPM = 0;
     }).withName("StopIntake");
   }
@@ -435,7 +435,7 @@ public class FuelSubsystem extends SubsystemBase {
   public Command intakeCommand() {
     return run(() -> {
       setLauncherPower(FuelConstants.kLauncherIntakingPercent);
-      setFeederRoller(FuelConstants.kFeederIntakingPercent);
+      setFeederPower(FuelConstants.kFeederIntakingPercent);
     }).withName("IntakeFuel");
   }
   
@@ -446,7 +446,7 @@ public class FuelSubsystem extends SubsystemBase {
   public Command ejectCommand() {
     return run(() -> {
       setLauncherPower(FuelConstants.kLauncherEjectingPercent);
-      setFeederRoller(FuelConstants.kFeederEjectingPercent);
+      setFeederPower(FuelConstants.kFeederEjectingPercent);
     }).withName("EjectFuel");
   }
   
@@ -463,9 +463,9 @@ public class FuelSubsystem extends SubsystemBase {
       
       // Only feed when at speed - otherwise hold fuel back
       if (isAtSpeed()) {
-        setFeederRoller(FuelConstants.kFeederPassingPercent);
+        setFeederPower(FuelConstants.kFeederPassingPercent);
       } else {
-        setFeederRoller(FuelConstants.kFeederSpinUpPreLaunchPercent);
+        setFeederPower(FuelConstants.kFeederSpinUpPreLaunchPercent);
       }
     }).withName("PassFuel");
   }
@@ -490,9 +490,9 @@ public class FuelSubsystem extends SubsystemBase {
       
       // only feed when at speed - otherwise hold fuel back
       if (isAtSpeed()) {
-        setFeederRoller(FuelConstants.kFeederLaunchingPercent);
+        setFeederPower(FuelConstants.kFeederLaunchingPercent);
       } else {
-        setFeederRoller(FuelConstants.kFeederSpinUpPreLaunchPercent);
+        setFeederPower(FuelConstants.kFeederSpinUpPreLaunchPercent);
       }
     }).withName("LaunchFuel");
   }
