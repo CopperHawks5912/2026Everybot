@@ -396,7 +396,8 @@ public class FeedbackSubsystem extends SubsystemBase {
    * @return Command that sets idle LED display
    */
   public Command idleCommand() {
-    return setDisplayCommand(DisplayMode.IDLE);
+    return setDisplayCommand(DisplayMode.IDLE)
+      .withName("Idle");
   }
   
   /**
@@ -404,7 +405,17 @@ public class FeedbackSubsystem extends SubsystemBase {
    * @return Command that shows green-to-copper gradient chase
    */
   public Command teamColorsCommand() {
-    return setDisplayCommand(DisplayMode.TEAM_COLORS);
+    return setDisplayCommand(DisplayMode.TEAM_COLORS)
+      .withName("TeamColors");
+  }
+  
+  /**
+   * Function to schedule scoring shift feedback
+   * @return Command that sets the scoring shift display mode
+   */
+  public Command scoringShiftCommand() {
+    return setDisplayCommand(DisplayMode.SCORING_SHIFT)
+      .withName("ScoringShift");
   }
   
   /**
@@ -427,14 +438,5 @@ public class FeedbackSubsystem extends SubsystemBase {
   public Command setGameDataCommand(char gameData) {
     return runOnce(() -> { this.gameData = gameData; })
       .withName("SetGameData");
-  }
-  
-  /**
-   * Function to schedule scoring shift feedback
-   * @return Command that sets the scoring shift display mode
-   */
-  public Command scoringShiftCommand() {
-    return setDisplayCommand(DisplayMode.SCORING_SHIFT)
-      .withName("ScoringShift");
   }
 }
