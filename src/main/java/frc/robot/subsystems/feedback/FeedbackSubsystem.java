@@ -175,13 +175,13 @@ public class FeedbackSubsystem extends SubsystemBase {
     for (int i = 0; i < ledBuffer.getLength(); i++) {
       // Calculate position in gradient with offset for chase effect
       int position = (i + animationOffset) % gradientLength;
-      double gradientPosition = (double) position / gradientLength;
+      double gradientPosition = (double)position / gradientLength;
       
       // Interpolate between green and copper
       Color interpolatedColor = interpolateColor(
-          FeedbackConstants.TeamGreen,
-          FeedbackConstants.TeamCopper,
-          gradientPosition
+        FeedbackConstants.TeamGreen,
+        FeedbackConstants.TeamCopper,
+        gradientPosition
       );
       
       // Set the LED color
