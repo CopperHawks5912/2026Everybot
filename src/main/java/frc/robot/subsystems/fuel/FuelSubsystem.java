@@ -527,7 +527,7 @@ public class FuelSubsystem extends SubsystemBase {
    * Get the average velocity of both launcher motors
    * @return Average velocity in RPM
    */
-  public double getVelocityRPM() {
+  private double getVelocityRPM() {
     return (leftEncoder.getVelocity() + rightEncoder.getVelocity()) / 2.0;
   }
   
@@ -535,7 +535,7 @@ public class FuelSubsystem extends SubsystemBase {
    * Get the average current draw of both launcher motors
    * @return Average current in amps
    */
-  public double getCurrent() {
+  private double getCurrent() {
     return (leftIntakeLauncherMotor.getOutputCurrent() + 
             rightIntakeLauncherMotor.getOutputCurrent()) / 2.0;
   }
@@ -544,7 +544,7 @@ public class FuelSubsystem extends SubsystemBase {
    * Get the average temperature of both launcher motors
    * @return Average temperature in Celsius
    */
-  public double getTemperature() {
+  private double getTemperature() {
     return (leftIntakeLauncherMotor.getMotorTemperature() + 
             rightIntakeLauncherMotor.getMotorTemperature()) / 2.0;
   }
