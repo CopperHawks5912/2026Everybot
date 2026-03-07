@@ -251,10 +251,7 @@ public class RobotContainer {
     }));
 
     // set scoring shift based on game data once it's received in teleop
-    new Trigger(() -> gameData != '?').onTrue(
-      feedbackSubsystem.setGameDataCommand(gameData)
-      .andThen(feedbackSubsystem.scoringShiftCommand())
-    );
+    new Trigger(() -> gameData != '?').onTrue(feedbackSubsystem.setGameDataCommand(gameData));
 
     // post-match trigger
     RobotModeTriggers.disabled().and(() -> wasInTeleop).onTrue(Commands.parallel(

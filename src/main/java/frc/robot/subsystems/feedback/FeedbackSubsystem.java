@@ -514,6 +514,7 @@ public class FeedbackSubsystem extends SubsystemBase {
    */
   public Command setGameDataCommand(char gameData) {
     return runOnce(() -> { this.gameData = gameData; })
+      .andThen(scoringShiftCommand())
       .withName("SetGameData");
   }
 }
