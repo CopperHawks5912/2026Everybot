@@ -795,6 +795,7 @@ public class DifferentialSubsystem extends SubsystemBase {
   /**
    * Updates the SmartDashboard with the robot's readiness for autonomous mode.
    * This should be called perioddically prior to autonomous mode while the robot is disabled.
+   * Team members then move the robot left/right/back/forward/rotate until the all the errors are zero.
    * @param expectedStart The expected starting pose for the selected autonomous mode
    */
   public void updateAutoReadiness(Pose2d expectedStart) {
