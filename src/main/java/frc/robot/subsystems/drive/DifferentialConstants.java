@@ -32,6 +32,12 @@ public final class DifferentialConstants {
    * The robot's mass in kilograms with the bumpers attached and battery installed
    * 2026 Rebuilt max 52.16 kg / 115 lbs without the battery or bumpers
    */
+  public static final double kWheelCOF = 1.19; // TODO: Measure your robot
+  
+  /**
+   * The robot's mass in kilograms with the bumpers attached and battery installed
+   * 2026 Rebuilt max 52.16 kg / 115 lbs without the battery or bumpers
+   */
   public static final double kRobotMassKg = Units.lbsToKilograms(110.0); // TODO: Measure your robot
 
   /**
@@ -217,7 +223,7 @@ public final class DifferentialConstants {
     new ModuleConfig(
       kWheelDiameterMeters / 2.0,   // wheel radius (m)
       kMaxSpeedMetersPerSecond,     // max wheel speed (m/s)
-      1.19,                // wheel COF
+      kWheelCOF,                    // wheel COF
       DCMotor.getCIM(1),  // drive motors: 2 CIMs per side but they act like 1 motor with 2x the torque and speed
       60.0,       // current limit (A)
       2                   // number of motors per module
