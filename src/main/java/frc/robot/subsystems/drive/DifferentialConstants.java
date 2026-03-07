@@ -135,6 +135,16 @@ public final class DifferentialConstants {
    * PID proportional gain for velocity control
    */
   public static final double kP = 0.0002; // TODO: Tune this value
+
+  /**
+   * PID proportional gain for velocity control
+   */
+  public static final double kI = 0.0; // TODO: Tune this value
+  
+  /**
+   * PID proportional gain for velocity control
+   */
+  public static final double kD = 0.0; // TODO: Tune this value
   
   /**
    * Feedforward kS - voltage needed to overcome static friction

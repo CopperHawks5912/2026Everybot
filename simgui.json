@@ -9,6 +9,7 @@
       "/SmartDashboard/Auto-Drive:": "String Chooser",
       "/SmartDashboard/Auto-Level:": "String Chooser",
       "/SmartDashboard/Drive/Field": "Field2d",
+      "/SmartDashboard/Drive/Gyro": "Gyro",
       "/SmartDashboard/Encoders": "Alerts",
       "/SmartDashboard/Field": "Field2d",
       "/SmartDashboard/IMU": "Alerts",
