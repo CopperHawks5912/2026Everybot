@@ -3,6 +3,6 @@ best practices described here:
 
 https://bovlb.github.io/frc-tips/commands/best-practices.html
 
-However, there are some deviations from those best practices. Most notably,
-our subsystems use public getters to expose state values. Ideally, these
-should be replaced with public triggers but that is for a future version.
+We will do our best to keep a standardized system, however, sometimes it makes
+sense to deviate from the best practices in certain cases. Try to keep this
+as rare an occurence as possible.
