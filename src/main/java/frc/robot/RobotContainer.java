@@ -265,19 +265,13 @@ public class RobotContainer {
     ));
 
     // show feedback when climber is at upper limit
-    climberSubsystem.isAtUpperLimit.onTrue(
-      feedbackSubsystem.warningCommand().withTimeout(2.0)
-    );
+    climberSubsystem.isAtUpperLimit.onTrue(feedbackSubsystem.warningCommand().withTimeout(2.0));
 
     // show feedback when climber is at lower limit
-    climberSubsystem.isAtLowerLimit.onTrue(
-      feedbackSubsystem.warningCommand().withTimeout(2.0)
-    );
+    climberSubsystem.isAtLowerLimit.onTrue(feedbackSubsystem.warningCommand().withTimeout(2.0));
 
     // show feedback when climber is stalled
-    climberSubsystem.isStalled.onTrue(
-      feedbackSubsystem.errorCommand().withTimeout(2.0)
-    );
+    climberSubsystem.isStalled.onTrue(feedbackSubsystem.errorCommand().withTimeout(2.0));
   }
 
   /**
