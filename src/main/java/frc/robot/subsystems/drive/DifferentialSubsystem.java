@@ -411,6 +411,18 @@ public class DifferentialSubsystem extends SubsystemBase {
   }
 
   /**
+   * Drive the differential in arcade mode (used in teleop)
+   * @param xSpeed    The forward/backward speed (-1.0 to 1.0)
+   * @param zRotation The rotation rate (-1.0 to 1.0)
+   */
+  private void driveArcade(double xSpeed, double zRotation) {
+    drive.arcadeDrive(
+      MathUtil.clamp(xSpeed, -1.0, 1.0), 
+      MathUtil.clamp(zRotation, -1.0, 1.0)
+    );
+  }
+
+  /**
    * Drive the robot using robot-relative chassis speeds with feedforward and PID control.
    * @param speeds The desired robot-relative chassis speeds
    */
@@ -535,18 +547,6 @@ public class DifferentialSubsystem extends SubsystemBase {
    */
   private void stop() {
     drive.stopMotor();
-  }
-
-  /**
-   * Drive the differential in arcade mode (used in teleop)
-   * @param xSpeed    The forward/backward speed (-1.0 to 1.0)
-   * @param zRotation The rotation rate (-1.0 to 1.0)
-   */
-  private void driveArcade(double xSpeed, double zRotation) {
-    drive.arcadeDrive(
-      MathUtil.clamp(xSpeed, -1.0, 1.0), 
-      MathUtil.clamp(zRotation, -1.0, 1.0)
-    );
   }
 
   // ==================== State Methods ====================
