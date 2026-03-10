@@ -36,7 +36,7 @@ public final class FuelConstants {
   // Feedforward constants (Modern REV API)
   // These replace the deprecated velocityFF() method
   // Use SysId or empirical tuning to find these values
-  public static final double kLauncherKS                    = 0.0;      // Static friction (volts) - voltage to overcome friction
+  public static final double kLauncherKS                    = 0.1;      // Static friction (volts) - voltage to overcome friction
   public static final double kLauncherKV                    = 0.00167;  // Velocity constant (volts per RPM) - was 1/6000
   public static final double kLauncherKA                    = 0.0;      // Acceleration constant (volts per RPM/s) - usually small for flywheels
   
