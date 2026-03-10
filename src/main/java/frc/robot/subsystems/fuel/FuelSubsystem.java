@@ -225,13 +225,19 @@ public class FuelSubsystem extends SubsystemBase {
     launcherRPM.clear();
     
     // Load from constants or use defaults
-    launcherRPM.put(0.0, 1000.0);   // Close range
-    launcherRPM.put(2.0, 2000.0);   // 2 meters
-    launcherRPM.put(3.0, 2500.0);   // 3 meters
-    launcherRPM.put(4.0, 3000.0);   // Mid range
-    launcherRPM.put(5.0, 3500.0);   // 5 meters
-    launcherRPM.put(6.0, 4000.0);   // 6 meters
-    launcherRPM.put(7.0, 4500.0);   // Far range (max distance for half field)
+    launcherRPM.put(0.0, 1000.0);   // 0.0 meters - close range
+    launcherRPM.put(0.5, 1100.0);   // 0.5 meters
+    launcherRPM.put(1.0, 1200.0);   // 1.0 meters
+    launcherRPM.put(1.5, 1300.0);   // 1.5 meters
+    launcherRPM.put(2.0, 1400.0);   // 2.0 meters
+    launcherRPM.put(2.5, 1500.0);   // 2.5 meters
+    launcherRPM.put(3.0, 1600.0);   // 3.0 meters - mid range
+    launcherRPM.put(3.5, 1700.0);   // 3.5 meters - mid range
+    launcherRPM.put(4.0, 1800.0);   // 4.0 meters - hub to driver station
+    launcherRPM.put(4.5, 1900.0);   // 4.5 meters - diagonal from hub to corner
+    launcherRPM.put(5.0, 2000.0);   // 5.0 meters - diagonal from hub to corner
+    launcherRPM.put(5.5, 2100.0);   // 5.5 meters - diagonal from hub to corner
+    launcherRPM.put(6.0, 2200.0);   // 6.0 meters - far range
   }
   
   /**
@@ -492,7 +498,7 @@ public class FuelSubsystem extends SubsystemBase {
   public Command launchCommand(DoubleSupplier distanceToHub) {
     return run(() -> {
       // get the clamped distance value
-      double distance = MathUtil.clamp(distanceToHub.getAsDouble(), 0.0, 10.0);
+      double distance = MathUtil.clamp(distanceToHub.getAsDouble(), 0.0, 6.0);
       
       // spin up the launcher
       setLauncherRPM(launcherRPM.get(distance));
