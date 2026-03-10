@@ -123,11 +123,11 @@ public class FuelSubsystem extends SubsystemBase {
     launcherRPM = new InterpolatingDoubleTreeMap();
     loadDefaultLauncherMap();
 
-    // Initialize dashboard
-    SmartDashboard.putData("Fuel", this);
-
     // Setup NetworkTables for tuning (works with Elastic)
     setupNetworkTables();
+
+    // Initialize dashboard
+    SmartDashboard.putData("Fuel", this);
     
     // Output initialization progress
     Utils.logInfo("Fuel subsystem initialized");
