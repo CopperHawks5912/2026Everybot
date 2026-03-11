@@ -27,22 +27,22 @@ public final class Constants {
    * CAN bus IO contants
    */
   public static final class CANConstants {
+    // NavX 3 gyro (recommended to be on ID 0 for better stability)
+    public static final int kGyroID = 0;
+
     // Fuel subsystem motors
-    public static final int kLeftIntakeLauncherMotorID = 0;
-    public static final int kRightIntakeLauncherMotorID = 1;
-    public static final int kFeederMotorID = 2;
+    public static final int kLeftIntakeLauncherMotorID = 1;
+    public static final int kRightIntakeLauncherMotorID = 2;
+    public static final int kFeederMotorID = 3;
 
     // Climber subsystem motor
-    public static final int kClimberMotorID = 3;
+    public static final int kClimberMotorID = 4;
 
     // Differential drive subsystem motors
-    public static final int kLeftDifferentialLeaderMotorID = 4;
-    public static final int kLeftDifferentialFollowerMotorID = 5;
-    public static final int kRightDifferentialLeaderMotorID = 6;
-    public static final int kRightDifferentialFollowerMotorID = 7;
-
-    // NavX 3 gyro
-    public static final int kGyroID = 8;
+    public static final int kLeftDifferentialLeaderMotorID = 5;
+    public static final int kLeftDifferentialFollowerMotorID = 6;
+    public static final int kRightDifferentialLeaderMotorID = 7;
+    public static final int kRightDifferentialFollowerMotorID = 8;
   }
   
   /**
@@ -62,8 +62,8 @@ public final class Constants {
    */
   public static class FieldConstants {
     public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
-    public static final double kFieldLengthMeters = Units.inchesToMeters(651.25); // meters
-    public static final double kFieldWidthMeters = Units.inchesToMeters(315.5); // meters
+    public static final double kFieldLengthMeters = Units.inchesToMeters(651.22); // meters
+    public static final double kFieldWidthMeters = Units.inchesToMeters(317.69); // meters
     public static final Translation2d kRedHubCenter = new Translation2d(Units.inchesToMeters(158.84), Units.inchesToMeters(182.11));
     public static final Translation2d kBlueHubCenter = new Translation2d(Units.inchesToMeters(158.84), Units.inchesToMeters(469.11));
   }
