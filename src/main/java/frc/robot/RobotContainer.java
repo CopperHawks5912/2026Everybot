@@ -212,7 +212,7 @@ public class RobotContainer {
    */
   private void configureEventTriggers() {
     // pre-match init trigger
-    RobotModeTriggers.disabled().and(() -> !wasInAuto && !wasInTeleop && DriverStation.isFMSAttached()).onTrue(
+    RobotModeTriggers.disabled().and(() -> !wasInAuto && !wasInTeleop).onTrue(
       driveSubsystem.setMotorBrakeCommand(false)
     );
 

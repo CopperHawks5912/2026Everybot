@@ -847,20 +847,35 @@ public class DifferentialSubsystem extends SubsystemBase {
       return;
     }
 
+    // get the robot's current pose
     Pose2d currentPose = getPose();
 
+    // calculate the errors between the current pose and the expected starting pose
     double xError = expectedStart.getX() - currentPose.getX();
     double yError = expectedStart.getY() - currentPose.getY();
     double angleError = expectedStart.getRotation().minus(currentPose.getRotation()).getDegrees();
 
-    boolean inPosition = Math.abs(xError) < 0.1 &&
+    boolean inPosition = Math.abs(xError) < 0.1 && 
                          Math.abs(yError) < 0.1 &&
                          Math.abs(angleError) < 2.0;
 
-    SmartDashboard.putNumber("Auto/XError (m)", Utils.showDouble(xError));
-    SmartDashboard.putNumber("Auto/YError (m)", Utils.showDouble(yError));
-    SmartDashboard.putNumber("Auto/AngleError (deg)", Utils.showDouble(angleError));
+    // display if the robot is in the correct starting position for autonomous
     SmartDashboard.putBoolean("Auto/RobotInPosition", inPosition);
+
+    // display the robot's current pose according to the pose estimator
+    SmartDashboard.putNumber("Auto/Current X (m)", Utils.showDouble(currentPose.getX()));
+    SmartDashboard.putNumber("Auto/Current Y (m)", Utils.showDouble(currentPose.getY()));
+    SmartDashboard.putNumber("Auto/Current Angle (deg)", Utils.showDouble(currentPose.getRotation().getDegrees()));
+
+    // display the expected starting pose for the selected autonomous mode (from the auto chooser)
+    SmartDashboard.putNumber("Auto/Target X (m)", Utils.showDouble(expectedStart.getX()));
+    SmartDashboard.putNumber("Auto/Target Y (m)", Utils.showDouble(expectedStart.getY()));
+    SmartDashboard.putNumber("Auto/Target Angle (deg)", Utils.showDouble(expectedStart.getRotation().getDegrees()));
+
+    // display the errors between the current pose and the expected starting pose
+    SmartDashboard.putNumber("Auto/X Error (m)", Utils.showDouble(xError));
+    SmartDashboard.putNumber("Auto/Y Error (m)", Utils.showDouble(yError));
+    SmartDashboard.putNumber("Auto/Angle Error (deg)", Utils.showDouble(angleError));
   }
 
   /**
