@@ -29,6 +29,7 @@ import frc.robot.subsystems.feedback.FeedbackSubsystem;
 import frc.robot.subsystems.fuel.FuelSubsystem;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.Elastic;
+import frc.robot.util.Utils;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -118,6 +119,7 @@ public class RobotContainer {
       autoChooser.addOption(autoName, autoName);
 
       // pre-load each auto to catch any errors and cache the paths
+      Utils.logInfo("Pre-loading auto: " + autoName);
       new PathPlannerAuto(autoName).cancel();
     }
     

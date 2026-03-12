@@ -8,7 +8,7 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.45668674698795175,
+        "x": 0.4566867469879518,
         "y": 6.4170404722731345
       },
       "isLocked": false,
@@ -20,7 +20,7 @@
         "y": 5.073132530120482
       },
       "prevControl": {
-        "x": 0.35833734939759054,
+        "x": 0.3583373493975906,
         "y": 5.291686746987953
       },
       "nextControl": {
@@ -50,8 +50,8 @@
   "eventMarkers": [
     {
       "name": "INTAKE_FUEL",
-      "waypointRelativePos": 0,
-      "endWaypointRelativePos": 0.927047146401982,
+      "waypointRelativePos": 0.02237592887473451,
+      "endWaypointRelativePos": 1.2948347929936332,
       "command": null
     }
   ],
