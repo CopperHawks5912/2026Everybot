@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import java.util.HashMap;
 import java.util.List;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -49,11 +50,9 @@ public class RobotContainer {
   private final VisionSubsystem visionSubsystem = new VisionSubsystem(driveSubsystem::addVisionMeasurement);
 
   // Auto choosers
-  private SendableChooser<String> autoChooser = new SendableChooser<>();
-  private SendableChooser<Command> delayChooser = new SendableChooser<>();
-  
-  // Cache the selected auto to avoid repeatedly loading path files while disabled
-  private PathPlannerAuto selectedAuto = null;
+  private final SendableChooser<String> autoChooser = new SendableChooser<>();
+  private final SendableChooser<Command> delayChooser = new SendableChooser<>();
+  private final HashMap<String, PathPlannerAuto> loadedAutos = new HashMap<>();
 
   // Track match state
   private boolean wasInAuto = false;
@@ -120,7 +119,7 @@ public class RobotContainer {
 
       // pre-load each auto to catch any errors and cache the paths
       Utils.logInfo("Pre-loading auto: " + autoName);
-      new PathPlannerAuto(autoName).cancel();
+      loadedAutos.put(autoName, new PathPlannerAuto(autoName));
     }
     
     // Add auto chooser to dashboard
@@ -281,21 +280,22 @@ public class RobotContainer {
    * @return the starting pose of the selected autonomous command
    */
   private Pose2d getStartingPose() {
-    // get the name of the selected auto from the chooser
+    // get the name of the selected auto
     String autoName = autoChooser.getSelected();
 
-    // if no auto is selected, return a default pose at the origin
+    // if no auto is selected, return a default pose (e.g. origin)
     if (autoName == null || autoName.isEmpty()) {
       return new Pose2d();
     }
 
-    // cache the selected auto to avoid repeatedly loading path files while disabled
-    if (selectedAuto == null || !autoName.equals(selectedAuto.getName())) {
-      selectedAuto = new PathPlannerAuto(autoName);
+    // if an auto is selected, then get it from the cached autos
+    PathPlannerAuto auto = loadedAutos.get(autoName);
+    if (auto == null) {
+      return new Pose2d();
     }
 
-    // return the cached starting pose
-    return selectedAuto.getStartingPose();
+    // return the starting pose of the selected auto
+    return auto.getStartingPose();
   }
 
   /**
@@ -303,20 +303,21 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // get the selected auto from the chooser if it 
-    // wasn't already cached in getStartingPose()
-    if (selectedAuto == null) {
-      String autoName = autoChooser.getSelected();
-      if (autoName != null && !autoName.isEmpty()) {
-        selectedAuto = new PathPlannerAuto(autoName);
-      }
+    // get the name of the selected auto
+    String autoName = autoChooser.getSelected();
+
+    // if no auto is selected, return an empty command
+    if (autoName == null || autoName.isEmpty()) {
+      return Commands.none();
     }
 
-    // get the selected auto, this was cached in getStartingPose() 
-    // to avoid repeatedly loading path files while disabled
-    Command autoCommand = selectedAuto != null ? selectedAuto : Commands.none();
-    
-    // get the selected delay command and then call the selected auto
-    return delayChooser.getSelected().andThen(autoCommand);
+    // if an auto is selected, then get it from the cached autos
+    PathPlannerAuto auto = loadedAutos.get(autoName);
+    if (auto == null) {
+      return Commands.none();
+    }
+
+    // return the selected auto, with the selected delay prepended
+    return delayChooser.getSelected().andThen(auto);
   }
 }
