@@ -183,6 +183,30 @@ public class ClimberSubsystem extends SubsystemBase {
   }
   
   /**
+   * Check if climber is at level 1 climb position
+   * @return true if within tolerance of level 1 climb position
+   */
+  private boolean isAtLevelOneClimbPosition() {
+    return MathUtil.isNear(
+      ClimberConstants.kLevelOneClimbDegrees,
+      getPosition(),
+      ClimberConstants.kPositionToleranceDegrees
+    );
+  }
+  
+  /**
+   * Check if climber is at level 2 climb position
+   * @return true if within tolerance of level 2 climb position
+   */
+  private boolean isAtLevelTwoClimbPosition() {
+    return MathUtil.isNear(
+      ClimberConstants.kLevelTwoClimbDegrees,
+      getPosition(),
+      ClimberConstants.kPositionToleranceDegrees
+    );
+  }
+  
+  /**
    * Check if climber is stalled (high current, low velocity)
    * Useful for detecting when climber hits a hard stop
    * @return true if motor appears stalled

@@ -37,17 +37,19 @@ public final class ClimberConstants {
   public static final double kVelocityConversionFactor = kPositionConversionFactor / 60.0;
 
   // Motor power percentages
-  public static final double kUpPercent   =  0.80;  // Power for climbing up
-  public static final double kDownPercent = -0.80;  // Power for climbing down (negative)
+  public static final double kUpPercent                 =  0.80;  // Power for climbing up
+  public static final double kDownPercent               = -0.80;  // Power for climbing down (negative)
   
   // Soft limits (in encoder rotations)
   // Set these based on your climber's physical range of motion
-  public static final double kUpperLimitDegrees         = -254.0;  // Maximum extension
-  public static final double kLowerLimitDegrees         =  254.0;  // Fully retracted
+  public static final double kUpperLimitDegrees         = -258.0; // Maximum extension
+  public static final double kLowerLimitDegrees         =  258.0; // Fully retracted
   public static final double kHomeDegrees               =   0.0;  // Home position
+  public static final double kLevelOneClimbDegrees      =  38.0;  // Level 1 climb position
+  public static final double kLevelTwoClimbDegrees      =  60.0;  // Level 2 climb position
   public static final double kPositionToleranceDegrees  =   5.0;  // Tolerance for position control (in degrees)
   
   // Stall detection thresholds
-  public static final double kStallCurrentThreshold  = 35.0;   // Amps - indicates motor is working hard
-  public static final double kStallVelocityThreshold = 0.5;    // Degrees/sec - indicates motor not moving
+  public static final double kStallCurrentThreshold     = 38.0;   // Amps - indicates motor is working hard
+  public static final double kStallVelocityThreshold    = 1.0;    // Degrees/sec - indicates motor not moving
 }
