@@ -246,7 +246,7 @@ public class FuelSubsystem extends SubsystemBase {
     // Update tuning table for Elastic
     leftVelocityEntry.setDouble(leftEncoder.getVelocity());
     rightVelocityEntry.setDouble(rightEncoder.getVelocity());
-    atSpeedEntry.setBoolean(isAtSpeed());
+    atSpeedEntry.setBoolean(isLauncherAtSpeed());
   }
     
   // ==================== Internal State Modifiers ====================
@@ -308,7 +308,7 @@ public class FuelSubsystem extends SubsystemBase {
    * Check if launcher is at target speed
    * @return true if both motors are within tolerance of target RPM
    */
-  private boolean isAtSpeed() {
+  private boolean isLauncherAtSpeed() {
     if (targetRPM == 0) {
       return false;
     }
@@ -336,7 +336,7 @@ public class FuelSubsystem extends SubsystemBase {
       setLauncherRPM(testRPM);
       
       // Feed when at speed
-      if (isAtSpeed()) {
+      if (isLauncherAtSpeed()) {
         setFeederPower(FuelConstants.kFeederLaunchingPercent);
       } else {
         setFeederPower(FuelConstants.kFeederSpinUpPreLaunchPercent);
@@ -441,7 +441,7 @@ public class FuelSubsystem extends SubsystemBase {
       setLauncherRPM(FuelConstants.kLauncherPassingRPM);
       
       // Only feed when at speed - otherwise hold fuel back
-      if (isAtSpeed()) {
+      if (isLauncherAtSpeed()) {
         setFeederPower(FuelConstants.kFeederPassingPercent);
       } else {
         setFeederPower(FuelConstants.kFeederSpinUpPreLaunchPercent);
@@ -465,7 +465,7 @@ public class FuelSubsystem extends SubsystemBase {
       setLauncherRPM(launcherRPM.get(distance));
       
       // only feed when at speed - otherwise hold fuel back
-      if (isAtSpeed()) {
+      if (isLauncherAtSpeed()) {
         setFeederPower(FuelConstants.kFeederLaunchingPercent);
       } else {
         setFeederPower(FuelConstants.kFeederSpinUpPreLaunchPercent);
@@ -522,6 +522,6 @@ public class FuelSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Target RPM", () -> Utils.showDouble(targetRPM), null);
     builder.addDoubleProperty("Current (A)", () -> Utils.showDouble(getCurrent()), null);
     builder.addDoubleProperty("Temperature (C)", () -> Utils.showDouble(getTemperature()), null);
-    builder.addBooleanProperty("At Speed", this::isAtSpeed, null);
+    builder.addBooleanProperty("At Speed", this::isLauncherAtSpeed, null);
   }
 }
