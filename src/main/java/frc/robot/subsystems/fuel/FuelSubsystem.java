@@ -4,12 +4,6 @@
 
 package frc.robot.subsystems.fuel;
 
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
 import java.util.function.DoubleSupplier;
 
 import com.revrobotics.PersistMode;
@@ -27,15 +21,10 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.units.measure.MutAngle;
-import edu.wpi.first.units.measure.MutAngularVelocity;
-import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.Constants.CANConstants;
 import frc.robot.util.Utils;
@@ -67,12 +56,6 @@ public class FuelSubsystem extends SubsystemBase {
   
   // Mutable holders for unit-safe voltage values, persisted to avoid reallocation.
   private final InterpolatingDoubleTreeMap launcherRPM;
-  private final MutVoltage appliedVoltage = Volts.mutable(0);
-  private final MutAngle angle = Radians.mutable(0);
-  private final MutAngularVelocity velocity = RadiansPerSecond.mutable(0);
-
-  // Create a new SysId routine for characterizing the shooter.
-  private final SysIdRoutine sysIdRoutine;
   
   /** Creates a new FuelSubsystem. */
   public FuelSubsystem() {
@@ -92,28 +75,6 @@ public class FuelSubsystem extends SubsystemBase {
     // Get the NEO's builtin encoders
     leftEncoder = leftIntakeLauncherMotor.getEncoder();
     rightEncoder = rightIntakeLauncherMotor.getEncoder();
-
-    // Initialize SysId routine for shooter characterization
-    sysIdRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(),
-      new SysIdRoutine.Mechanism(
-        voltage -> {
-          leftIntakeLauncherMotor.setVoltage(voltage);
-          rightIntakeLauncherMotor.setVoltage(voltage);
-        },
-        log -> {
-          log.motor("launcher-left")
-            .voltage(appliedVoltage.mut_replace(leftIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .angularPosition(angle.mut_replace(leftEncoder.getPosition(), Rotations))
-            .angularVelocity(velocity.mut_replace(leftEncoder.getVelocity(), RotationsPerSecond));
-          log.motor("launcher-right")
-            .voltage(appliedVoltage.mut_replace(rightIntakeLauncherMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .angularPosition(angle.mut_replace(rightEncoder.getPosition(), Rotations))
-            .angularVelocity(velocity.mut_replace(rightEncoder.getVelocity(), RotationsPerSecond));
-        },
-        this
-      )
-    );
     
     // set the default command for this subsystem
     setDefaultCommand(stopCommand());
@@ -519,22 +480,6 @@ public class FuelSubsystem extends SubsystemBase {
   public Command launchCommand() {
     return launchCommand(() -> 2.0)
       .withName("LaunchDefaultFuel"); // Default to mid-range distance
-  }
-
-  /**
-   * Returns a command that will execute a quasistatic test in the given direction.
-   * @param direction The direction (forward or reverse) to run the test in
-   */
-  public Command sysIdQuasistaticCommand(SysIdRoutine.Direction direction) {
-    return sysIdRoutine.quasistatic(direction);
-  }
-
-  /**
-   * Returns a command that will execute a dynamic test in the given direction.
-   * @param direction The direction (forward or reverse) to run the test in
-   */
-  public Command sysIdDynamicCommand(SysIdRoutine.Direction direction) {
-    return sysIdRoutine.dynamic(direction);
   }
   
   // ==================== Telemetry Methods ====================

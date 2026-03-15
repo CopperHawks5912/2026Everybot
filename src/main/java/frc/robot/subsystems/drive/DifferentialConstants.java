@@ -21,12 +21,14 @@ public final class DifferentialConstants {
    * Reduces max speed for finer control
    */
   public static final double kTranslationScaling = 0.8;
+  public static final double kTranslationScalingSlowMode = 0.4;
   
   /**
    * Rotation scaling factor (0.0 to 1.0) - used by driveArcadeCommand
    * Reduces max rotation for finer control
    */
   public static final double kRotationScaling = 0.6;
+  public static final double kRotationScalingSlowMode = 0.3;
   
   /**
    * Maximum speed in meters per second
@@ -34,24 +36,28 @@ public final class DifferentialConstants {
    * Typical values: 2-4 m/s for FRC drivetrains
    */
   public static final double kMaxSpeedMetersPerSecond = 4.0;
+  public static final double kMaxSpeedMetersPerSecondSlowMode = 2.0;
   
   /**
    * Maximum acceleration in meters per second squared 
    * Used by Pathplanner
    */
-  public static final double kMaxAccelMetersPerSecondSq = 2.0; 
+  public static final double kMaxAccelMetersPerSecondSq = 2.0;
+  public static final double kMaxAccelMetersPerSecondSqSlowMode = 1.0;
   
   /**
    * Maximum angular speed (rotation) in radians per second
    * Used by Pathplanner & driveArcadeByPIDCommand
    */
   public static final double kMaxAngularSpeedRadsPerSecond = 2.0 * Math.PI;
+  public static final double kMaxAngularSpeedRadsPerSecondSlowMode = Math.PI;
   
   /**
    * Maximum angular acceleration (rotation) in radians per second squared
    * Used by Pathplanner
    */
   public static final double kMaxAngularAccelRadsPerSecondSq = Math.PI;
+  public static final double kMaxAngularAccelRadsPerSecondSqSlowMode = Math.PI / 2.0;
   
   // ==================== Joystick Control Parameters ====================
   

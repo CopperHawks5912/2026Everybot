@@ -5,9 +5,6 @@
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Volts;
 
 import java.util.Set;
 import java.util.function.DoubleSupplier;
@@ -40,11 +37,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.measure.MutDistance;
-import edu.wpi.first.units.measure.MutLinearVelocity;
-import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -52,7 +45,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.Constants.CANConstants;
 import frc.robot.Constants.FieldConstants;
@@ -90,15 +82,8 @@ public class DifferentialSubsystem extends SubsystemBase {
 
   // Flag to indicate if drive controls are inverted (e.g. for climbing)
   private boolean inverted = false;
+  private boolean slowMode = false;
   private int addedVisionMeasurementCount = 0;
-
-  // Mutable holders for unit-safe voltage values, persisted to avoid reallocation.
-  private final MutVoltage appliedVoltage = Volts.mutable(0);
-  private final MutDistance distance = Meters.mutable(0);
-  private final MutLinearVelocity velocity = MetersPerSecond.mutable(0);
-
-  // Create a new SysId routine for characterizing the drive.
-  private final SysIdRoutine sysIdRoutine;
 
   /**
    * Creates a new DifferentialSubsystem.
@@ -199,28 +184,6 @@ public class DifferentialSubsystem extends SubsystemBase {
     
     // Initialize field visualization
     field2d.setRobotPose(getPose());
-
-    // Initialize SysId routine for drive characterization
-    sysIdRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(),
-      new SysIdRoutine.Mechanism(
-        voltage -> {
-          leftLeaderMotor.setVoltage(voltage);
-          rightLeaderMotor.setVoltage(voltage);
-        },
-        log -> {
-          log.motor("drive-left")
-            .voltage(appliedVoltage.mut_replace(leftLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .linearPosition(distance.mut_replace(leftEncoder.getPosition(), Meters))
-            .linearVelocity(velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
-          log.motor("drive-right")
-            .voltage(appliedVoltage.mut_replace(rightLeaderMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .linearPosition(distance.mut_replace(rightEncoder.getPosition(), Meters))
-            .linearVelocity(velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
-        },
-        this
-      )
-    );
 
     // Initialize dashboard
     SmartDashboard.putData("Drive/Field", field2d);
@@ -600,6 +563,14 @@ public class DifferentialSubsystem extends SubsystemBase {
   }
 
   /**
+   * Check if the drive is currently in slow mode
+   * @return True if the drive is in slow mode, false otherwise
+   */
+  private boolean isSlowMode() {
+    return slowMode;
+  }
+
+  /**
    * Get the distance to the current alliance hub
    * @return Distance in meters to the alliance hub
    */
@@ -685,6 +656,15 @@ public class DifferentialSubsystem extends SubsystemBase {
   public Command toggleInvertControlsCommand() {
     return runOnce(() -> this.inverted = !this.inverted)
       .withName("ToggleInvertControlsDifferential");
+  }
+  
+  /**
+   * Command to toggle the drive controls slow mode
+   * @return Command that toggles the drive controls slow mode
+   */
+  public Command toggleSlowModeCommand() {
+    return runOnce(() -> this.slowMode = !this.slowMode)
+      .withName("ToggleSlowModeDifferential");
   }
 
   /**
@@ -775,8 +755,13 @@ public class DifferentialSubsystem extends SubsystemBase {
       rSpeed = rSpeedLimiter.calculate(rSpeed);
 
       // 3. Scale the inputs to the maximum speeds of the robot
-      xSpeed *= DifferentialConstants.kTranslationScaling;
-      rSpeed *= DifferentialConstants.kRotationScaling;
+      if (slowMode) {
+        xSpeed *= DifferentialConstants.kTranslationScalingSlowMode;
+        rSpeed *= DifferentialConstants.kRotationScalingSlowMode;
+      } else {
+        xSpeed *= DifferentialConstants.kTranslationScaling;
+        rSpeed *= DifferentialConstants.kRotationScaling;
+      }
 
       // 4. Invert controls if the inverted flag is set
       if (inverted) {
@@ -810,35 +795,26 @@ public class DifferentialSubsystem extends SubsystemBase {
       xSpeed = xSpeedLimiter.calculate(xSpeed);
       rSpeed = rSpeedLimiter.calculate(rSpeed);
 
-      // 4. Invert if needed
-      if (inverted) {
-        xSpeed = -xSpeed;
-        rSpeed = -rSpeed;
+      // 4. Scale to real-world units using our constants
+      double xSpeedMps = 0;
+      double rSpeedRadPerSecond = 0;
+      if (slowMode) {
+        xSpeedMps = xSpeed * DifferentialConstants.kMaxSpeedMetersPerSecondSlowMode;
+        rSpeedRadPerSecond = rSpeed * DifferentialConstants.kMaxAngularSpeedRadsPerSecondSlowMode;
+      } else {
+        xSpeedMps = xSpeed * DifferentialConstants.kMaxSpeedMetersPerSecond;
+        rSpeedRadPerSecond = rSpeed * DifferentialConstants.kMaxAngularSpeedRadsPerSecond;
       }
 
-      // 5. Scale to real-world units using our constants
-      double xSpeedMps = xSpeed * DifferentialConstants.kMaxSpeedMetersPerSecond;
-      double rSpeedRadPerSecond = rSpeed * DifferentialConstants.kMaxAngularSpeedRadsPerSecond;
+      // 5. Invert if needed
+      if (inverted) {
+        xSpeedMps = -xSpeedMps;
+        rSpeedRadPerSecond = -rSpeedRadPerSecond;
+      }
 
-      // 6. Drive via ChassisSpeeds so feedforward + PID enforce the actual velocity
+      // 6. Drive via ChassisSpeeds => feedforward + PID enforce the actual velocity
       driveRobotRelative(new ChassisSpeeds(xSpeedMps, 0.0, rSpeedRadPerSecond));
     }).withName("DriveArcadeByPIDDifferential");
-  }
-
-  /**
-   * Returns a command that will execute a quasistatic test in the given direction.
-   * @param direction The direction (forward or reverse) to run the test in
-   */
-  public Command sysIdQuasistaticCommand(SysIdRoutine.Direction direction) {
-    return sysIdRoutine.quasistatic(direction);
-  }
-
-  /**
-   * Returns a command that will execute a dynamic test in the given direction.
-   * @param direction The direction (forward or reverse) to run the test in
-   */
-  public Command sysIdDynamicCommand(SysIdRoutine.Direction direction) {
-    return sysIdRoutine.dynamic(direction);
   }
 
   // ==================== Telemetry Methods ====================
@@ -902,5 +878,6 @@ public class DifferentialSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Temperature (C)", () -> Utils.showDouble(getTemperature()), null);
     builder.addIntegerProperty("Added Vision Measurements", () -> addedVisionMeasurementCount, null);
     builder.addBooleanProperty("Inverted", this::isInverted, null);
+    builder.addBooleanProperty("Slow Mode", this::isSlowMode, null);
   }
 }

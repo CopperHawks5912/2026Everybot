@@ -22,7 +22,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.drive.DifferentialSubsystem;
@@ -188,23 +187,17 @@ public class RobotContainer {
       fuelSubsystem.launchCommand(driveSubsystem::getDistanceToAllianceHub)
     );
 
+    // toggle slow mode with any pov button when in teleop
+    driverXbox.povUp().and(RobotModeTriggers.teleop()).onTrue(driveSubsystem.toggleSlowModeCommand());
+    driverXbox.povRight().and(RobotModeTriggers.teleop()).onTrue(driveSubsystem.toggleSlowModeCommand());
+    driverXbox.povDown().and(RobotModeTriggers.teleop()).onTrue(driveSubsystem.toggleSlowModeCommand());
+    driverXbox.povLeft().and(RobotModeTriggers.teleop()).onTrue(driveSubsystem.toggleSlowModeCommand());
+    
     // show various feedbacks for fun
-    driverXbox.povUp().onTrue(feedbackSubsystem.teamColorsCommand());
-    driverXbox.povRight().onTrue(feedbackSubsystem.candyCaneCommand());
-    driverXbox.povDown().onTrue(feedbackSubsystem.funkyDiscoCommand());
-    driverXbox.povLeft().onTrue(feedbackSubsystem.idleCommand());
-
-    // Override above bindings with bindings to run SysId commands
-    if (DriverStation.isTest()) {
-      driverXbox.y().whileTrue(driveSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kForward));
-      driverXbox.b().whileTrue(driveSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kReverse));
-      driverXbox.x().whileTrue(driveSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kForward));
-      driverXbox.a().whileTrue(driveSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kReverse));
-      driverXbox.leftTrigger().whileTrue(fuelSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kForward));
-      driverXbox.leftBumper().whileTrue(fuelSubsystem.sysIdQuasistaticCommand(SysIdRoutine.Direction.kReverse));
-      driverXbox.rightTrigger().whileTrue(fuelSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kForward));
-      driverXbox.rightBumper().whileTrue(fuelSubsystem.sysIdDynamicCommand(SysIdRoutine.Direction.kReverse));
-    }
+    driverXbox.povUp().and(RobotModeTriggers.disabled()).onTrue(feedbackSubsystem.teamColorsCommand());
+    driverXbox.povRight().and(RobotModeTriggers.disabled()).onTrue(feedbackSubsystem.candyCaneCommand());
+    driverXbox.povDown().and(RobotModeTriggers.disabled()).onTrue(feedbackSubsystem.funkyDiscoCommand());
+    driverXbox.povLeft().and(RobotModeTriggers.disabled()).onTrue(feedbackSubsystem.idleCommand());
   }
 
   /**
